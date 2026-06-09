@@ -1,0 +1,391 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.platform{display:flex;height:100vh;min-height:700px;background:var(--color-background-tertiary)}
+.sidebar{width:260px;min-width:260px;background:var(--color-background-primary);border-right:0.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-header{padding:1.25rem 1rem 1rem;border-bottom:0.5px solid var(--color-border-tertiary)}
+.logo{font-size:13px;font-weight:500;color:var(--color-text-primary);letter-spacing:0.02em}
+.logo-sub{font-size:11px;color:var(--color-text-tertiary);margin-top:2px}
+.sidebar-nav{flex:1;overflow-y:auto;padding:0.5rem 0}
+.nav-group-label{font-size:10px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.08em;padding:1rem 1rem 0.25rem}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 1rem;cursor:pointer;transition:background 0.1s;border:none;background:none;width:100%;text-align:left;color:var(--color-text-secondary);font-size:12.5px}
+.nav-item:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.nav-item.active{background:var(--color-background-secondary);color:var(--color-text-primary);font-weight:500}
+.nav-item.locked{opacity:0.45;cursor:not-allowed}
+.nav-code{font-size:11px;font-family:var(--font-mono);background:var(--color-background-secondary);padding:2px 5px;border-radius:4px;min-width:36px;text-align:center;color:var(--color-text-tertiary)}
+.nav-item.active .nav-code{background:#E6F1FB;color:#185FA5}
+.nav-badge{margin-left:auto;font-size:10px;padding:2px 6px;border-radius:4px;background:var(--color-background-success);color:var(--color-text-success)}
+.lock-icon{margin-left:auto;font-size:13px;opacity:0.5}
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.topbar{padding:1rem 1.5rem;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);display:flex;align-items:center;gap:1rem}
+.breadcrumb{font-size:12px;color:var(--color-text-tertiary)}
+.breadcrumb span{color:var(--color-text-secondary)}
+.content{padding:1.5rem;flex:1}
+.module-hero{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem 1.5rem;margin-bottom:1rem}
+.module-title{font-size:17px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px}
+.module-desc{font-size:13px;color:var(--color-text-secondary);line-height:1.5}
+.tabs{display:flex;gap:0;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:1.25rem;background:var(--color-background-primary);border-radius:var(--border-radius-lg) var(--border-radius-lg) 0 0;overflow:hidden;border:0.5px solid var(--color-border-tertiary)}
+.tab{padding:10px 18px;font-size:13px;font-weight:400;color:var(--color-text-secondary);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:all 0.1s}
+.tab:hover{color:var(--color-text-primary);background:var(--color-background-secondary)}
+.tab.active{color:#185FA5;border-bottom:2px solid #185FA5;font-weight:500;background:var(--color-background-primary)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem 1.5rem;margin-bottom:1rem}
+.card-title{font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:1rem;display:flex;align-items:center;gap:8px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group.full{grid-column:1/-1}
+label{font-size:12px;color:var(--color-text-secondary);font-weight:500}
+input,select{font-size:13px;width:100%}
+.calc-btn{width:100%;padding:10px;font-size:14px;font-weight:500;background:#185FA5;color:#fff;border:none;border-radius:var(--border-radius-md);cursor:pointer;margin-top:8px;transition:background 0.15s}
+.calc-btn:hover{background:#0C447C}
+.results-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem}
+.result-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 14px}
+.result-label{font-size:11px;color:var(--color-text-tertiary);margin-bottom:4px}
+.result-val{font-size:18px;font-weight:500;color:var(--color-text-primary)}
+.result-val.highlight{color:#185FA5}
+.result-note{font-size:11px;color:var(--color-text-tertiary);margin-top:3px}
+.info-row{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:13px}
+.info-row:last-child{border-bottom:none}
+.info-key{min-width:180px;color:var(--color-text-secondary)}
+.info-val{color:var(--color-text-primary);font-weight:500}
+.mevzuat-item{padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);margin-bottom:8px;font-size:13px}
+.mevzuat-title{font-weight:500;color:var(--color-text-primary);margin-bottom:3px}
+.mevzuat-src{font-size:11px;color:var(--color-text-tertiary)}
+.report-section{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:10px;font-size:13px;line-height:1.7}
+.report-section h4{font-size:12px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px}
+.report-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.report-row:last-child{border-bottom:none;font-weight:500;padding-top:6px}
+.alert-info{background:#E6F1FB;border:0.5px solid #B5D4F4;border-radius:var(--border-radius-md);padding:10px 14px;font-size:12.5px;color:#185FA5;margin-bottom:1rem;display:flex;gap:8px;align-items:flex-start}
+.coming-soon{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem;text-align:center;gap:12px}
+.coming-soon-icon{font-size:36px;color:var(--color-text-tertiary)}
+.coming-soon h3{font-size:16px;font-weight:500;color:var(--color-text-primary)}
+.coming-soon p{font-size:13px;color:var(--color-text-secondary);max-width:340px;line-height:1.6}
+</style>
+
+<h2 class="sr-only">Bilirkişilik Hesaplama Platformu — 62 serisi uzmanlık modülleri</h2>
+
+<div class="platform">
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo"><i class="ti ti-scale" aria-hidden="true" style="font-size:14px;margin-right:5px"></i>Bilirkişilik Platformu</div>
+    <div class="logo-sub">Adalet Bakanlığı 62. Seri Modülleri</div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-group-label">Aktif Modül</div>
+    <button class="nav-item active" onclick="showModule('6201')">
+      <span class="nav-code">62.01</span>Aktüerya
+      <span class="nav-badge">Aktif</span>
+    </button>
+    <div class="nav-group-label">Diğer Modüller</div>
+    <button class="nav-item locked"><span class="nav-code">62.02</span>İş Mevzuatı<i class="ti ti-lock lock-icon" aria-hidden="true"></i></button>
+    <button class="nav-item locked"><span class="nav-code">62.03</span>Sosyal Güvenlik<i class="ti ti-lock lock-icon" aria-hidden="true"></i></button>
+    <button class="nav-item locked"><span class="nav-code">62.04</span>Toplu İş Sözl.<i class="ti ti-lock lock-icon" aria-hidden="true"></i></button>
+    <button class="nav-item locked"><span class="nav-code">62.05</span>İcra ve İflas<i class="ti ti-lock lock-icon" aria-hidden="true"></i></button>
+    <button class="nav-item locked"><span class="nav-code">62.06</span>Aile ve Miras<i class="ti ti-lock lock-icon" aria-hidden="true"></i></button>
+    <button class="nav-item locked"><span class="nav-code">62.07</span>Kooperatifler<i class="ti ti-lock lock-icon" aria-hidden="true"></i></button>
+    <button class="nav-item locked"><span class="nav-code">62.08</span>Kat Mülkiyeti<i class="ti ti-lock lock-icon" aria-hidden="true"></i></button>
+    <button class="nav-item locked"><span class="nav-code">62.09</span>Tüketici<i class="ti ti-lock lock-icon" aria-hidden="true"></i></button>
+    <button class="nav-item locked"><span class="nav-code">62.10</span>Borçlar<i class="ti ti-lock lock-icon" aria-hidden="true"></i></button>
+    <button class="nav-item locked"><span class="nav-code">62.11</span>Ticaret<i class="ti ti-lock lock-icon" aria-hidden="true"></i></button>
+    <button class="nav-item locked"><span class="nav-code">62.12</span>Bankacılık<i class="ti ti-lock lock-icon" aria-hidden="true"></i></button>
+    <button class="nav-item locked"><span class="nav-code">62.13</span>Avukatlık Ücreti<i class="ti ti-lock lock-icon" aria-hidden="true"></i></button>
+    <button class="nav-item locked"><span class="nav-code">62.14</span>Kamu İhale<i class="ti ti-lock lock-icon" aria-hidden="true"></i></button>
+  </div>
+</div>
+
+<div class="main" id="module-6201">
+  <div class="topbar">
+    <div class="breadcrumb">Platform <i class="ti ti-chevron-right" aria-hidden="true" style="font-size:11px"></i> <span>62.01 — Aktüerya (İşgöremezlik / Destekten Yoksun Kalma)</span></div>
+  </div>
+  <div class="content">
+    <div class="module-hero">
+      <div class="module-title"><i class="ti ti-calculator" aria-hidden="true" style="font-size:16px;margin-right:6px;color:#185FA5"></i>62.01 Aktüerya — İşgöremezlik & Destekten Yoksun Kalma</div>
+      <div class="module-desc">PMF (Komisyon Mortalite Tablosu) ve TRH-2010 yaşam tablosu esas alınarak iş göremezlik tazminatı ve destekten yoksun kalma tazminatı hesaplamaları. Yargıtay içtihadı uyumlu.</div>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button class="tab active" role="tab" onclick="switchTab('isg')">İşgöremezlik Tazminatı</button>
+      <button class="tab" role="tab" onclick="switchTab('dyk')">Destekten Yoksun Kalma</button>
+      <button class="tab" role="tab" onclick="switchTab('mevzuat')">Mevzuat Dayanağı</button>
+      <button class="tab" role="tab" onclick="switchTab('rapor')">Hesap Raporu</button>
+    </div>
+
+    <div id="tab-isg" class="tab-content active">
+      <div class="alert-info"><i class="ti ti-info-circle" aria-hidden="true" style="font-size:16px;margin-top:1px"></i><span>Hesaplama TRH-2010 yaşam tablosu ve PMF iskonto faktörü esas alınarak yapılmaktadır. Yargıtay HGK 17.04.2017 tarihli kararı doğrultusunda.</span></div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-user" aria-hidden="true" style="font-size:15px;color:#185FA5"></i>Zarar gören bilgileri</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Doğum tarihi</label>
+            <input type="date" id="dogum" value="1985-06-15">
+          </div>
+          <div class="form-group">
+            <label>Kaza / olay tarihi</label>
+            <input type="date" id="kaza" value="2024-03-10">
+          </div>
+          <div class="form-group">
+            <label>Cinsiyet</label>
+            <select id="cinsiyet">
+              <option value="E">Erkek</option>
+              <option value="K">Kadın</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Maluliyet oranı (%)</label>
+            <input type="number" id="maluliyet" value="25" min="1" max="100">
+          </div>
+          <div class="form-group">
+            <label>Aylık net gelir (₺)</label>
+            <input type="number" id="gelir" value="35000">
+          </div>
+          <div class="form-group">
+            <label>Pasif dönem başlangıcı (yaş)</label>
+            <input type="number" id="emeklilik" value="65" min="50" max="75">
+          </div>
+          <div class="form-group full">
+            <label>İskonto oranı (%)</label>
+            <input type="number" id="iskonto" value="10" step="0.5" min="0" max="30">
+          </div>
+        </div>
+        <button class="calc-btn" onclick="hesaplaIsg()"><i class="ti ti-calculate" aria-hidden="true" style="font-size:15px;margin-right:6px"></i>Tazminatı Hesapla</button>
+      </div>
+      <div id="isg-results" style="display:none">
+        <div class="results-grid">
+          <div class="result-card">
+            <div class="result-label">Kaza anındaki yaş</div>
+            <div class="result-val" id="r-yas">—</div>
+          </div>
+          <div class="result-card">
+            <div class="result-label">Aktif dönem (yıl)</div>
+            <div class="result-val" id="r-aktif">—</div>
+          </div>
+          <div class="result-card">
+            <div class="result-label">Pasif dönem (yıl)</div>
+            <div class="result-val" id="r-pasif">—</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-report-money" aria-hidden="true" style="font-size:15px;color:#185FA5"></i>Tazminat hesabı</div>
+          <div class="report-section">
+            <div class="report-row"><span>Yıllık net gelir</span><span id="r-yillik">—</span></div>
+            <div class="report-row"><span>Maluliyet oranı</span><span id="r-maluliyet-oran">—</span></div>
+            <div class="report-row"><span>Aktif dönem tazminatı (iskontolu)</span><span id="r-aktif-taz">—</span></div>
+            <div class="report-row"><span>Pasif dönem tazminatı (iskontolu)</span><span id="r-pasif-taz">—</span></div>
+            <div class="report-row"><span style="color:var(--color-text-primary)">Toplam tazminat</span><span class="result-val highlight" id="r-toplam">—</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-dyk" class="tab-content">
+      <div class="alert-info"><i class="ti ti-info-circle" aria-hidden="true" style="font-size:16px;margin-top:1px"></i><span>Destekten yoksun kalma tazminatı; ölen kişinin sağlararası desteği esas alınarak, hak sahiplerinin beklenen yaşam süresine göre hesaplanır. TBK m.53 ve Yargıtay 17. HD uygulaması.</span></div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-users" aria-hidden="true" style="font-size:15px;color:#185FA5"></i>Ölen kişi bilgileri</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Ölüm tarihi</label><input type="date" id="olum" value="2024-01-15"></div>
+          <div class="form-group"><label>Ölüm anındaki yaş</label><input type="number" id="oyas" value="42"></div>
+          <div class="form-group"><label>Cinsiyet</label><select id="ocinsiyet"><option value="E">Erkek</option><option value="K">Kadın</option></select></div>
+          <div class="form-group"><label>Aylık net gelir (₺)</label><input type="number" id="ogelir" value="45000"></div>
+          <div class="form-group"><label>Hak sahibi payı (%)</label><input type="number" id="pay" value="50" min="1" max="100"></div>
+          <div class="form-group"><label>İskonto oranı (%)</label><input type="number" id="diskonto" value="10" step="0.5"></div>
+        </div>
+        <div class="card-title" style="margin-top:1rem"><i class="ti ti-user-heart" aria-hidden="true" style="font-size:15px;color:#185FA5"></i>Hak sahibi bilgileri</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Hak sahibi yaşı</label><input type="number" id="hyas" value="38"></div>
+          <div class="form-group"><label>Hak sahibi cinsiyeti</label><select id="hcinsiyet"><option value="K">Kadın</option><option value="E">Erkek</option></select></div>
+        </div>
+        <button class="calc-btn" onclick="hesaplaDyk()"><i class="ti ti-calculate" aria-hidden="true" style="font-size:15px;margin-right:6px"></i>Destekten Yoksun Kalma Tazminatını Hesapla</button>
+      </div>
+      <div id="dyk-results" style="display:none">
+        <div class="card">
+          <div class="card-title"><i class="ti ti-report-money" aria-hidden="true" style="font-size:15px;color:#185FA5"></i>Hesap sonucu</div>
+          <div class="report-section">
+            <div class="report-row"><span>Yıllık destek miktarı</span><span id="d-yillik">—</span></div>
+            <div class="report-row"><span>Hak sahibi pay oranı</span><span id="d-pay">—</span></div>
+            <div class="report-row"><span>Hak sahibi beklenen yaşam (TRH-2010)</span><span id="d-beklenen">—</span></div>
+            <div class="report-row"><span>Destek süresi (yıl)</span><span id="d-sure">—</span></div>
+            <div class="report-row"><span>İskontolu tazminat</span><span class="result-val highlight" id="d-toplam">—</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-mevzuat" class="tab-content">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-book-2" aria-hidden="true" style="font-size:15px;color:#185FA5"></i>Yasal ve içtihat dayanakları</div>
+        <div class="mevzuat-item">
+          <div class="mevzuat-title">6098 sayılı Türk Borçlar Kanunu — Madde 54</div>
+          <div class="mevzuat-src">Bedensel zararların kapsamı: kazanç kaybı, çalışma gücünün azalması veya yitirilmesi</div>
+        </div>
+        <div class="mevzuat-item">
+          <div class="mevzuat-title">6098 sayılı Türk Borçlar Kanunu — Madde 53</div>
+          <div class="mevzuat-src">Ölüm hâlinde zararlar: cenaze giderleri, tedavi giderleri, destekten yoksun kalma</div>
+        </div>
+        <div class="mevzuat-item">
+          <div class="mevzuat-title">Yargıtay HGK — 17.04.2017 T., 2017/17-95 E.</div>
+          <div class="mevzuat-src">TRH-2010 yaşam tablosunun uygulanması ve %10 iskonto oranı standardı</div>
+        </div>
+        <div class="mevzuat-item">
+          <div class="mevzuat-title">Yargıtay 17. HD — 2016/12456 E.</div>
+          <div class="mevzuat-src">Destekten yoksun kalma hesabında hak sahibi başlangıç/bitiş yaşı belirlenmesi</div>
+        </div>
+        <div class="mevzuat-item">
+          <div class="mevzuat-title">SGK Genelgesi 2022/16 — Maluliyet Değerlendirme</div>
+          <div class="mevzuat-src">Çalışma gücü kayıp oranının tespit usulü ve belgelenmesi</div>
+        </div>
+        <div class="mevzuat-item">
+          <div class="mevzuat-title">TRH-2010 Mortalite Tablosu</div>
+          <div class="mevzuat-src">Hazine Müsteşarlığı — Türkiye için yaşam beklentisi tablolar (erkek/kadın ayrı)</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-rapor" class="tab-content">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-file-description" aria-hidden="true" style="font-size:15px;color:#185FA5"></i>Bilirkişi raporu özet çıktısı</div>
+        <div id="rapor-bos" style="color:var(--color-text-tertiary);font-size:13px;padding:1rem 0">Önce hesaplama sekmesinden bir hesaplama yapınız. Sonuçlar burada rapor formatında görünecektir.</div>
+        <div id="rapor-icerik" style="display:none">
+          <div class="report-section">
+            <h4>Davaya ilişkin bilgiler</h4>
+            <div id="rapor-dayanaklar"></div>
+          </div>
+          <div class="report-section">
+            <h4>Hesaplama yöntemi</h4>
+            <div style="font-size:13px;line-height:1.7;color:var(--color-text-secondary)">Hesaplamada TRH-2010 yaşam tablosu esas alınmış, aktif ve pasif dönem tazminatları ayrı ayrı hesaplanarak toplanmıştır. İskonto işleminde Yargıtay HGK 17.04.2017 tarihli kararı doğrultusunda %<span id="rapor-iskonto-oran">10</span> iskonto oranı kullanılmıştır.</div>
+          </div>
+          <div class="report-section">
+            <h4>Hesap sonucu</h4>
+            <div id="rapor-sonuclar"></div>
+          </div>
+          <button class="calc-btn" style="background:var(--color-background-secondary);color:var(--color-text-primary);border:0.5px solid var(--color-border-secondary);margin-top:4px" onclick="sendPrompt('Bu bilirkişi raporunu Word belgesi formatına çevirir misin?')"><i class="ti ti-file-export" aria-hidden="true" style="font-size:14px;margin-right:6px"></i>Raporu Word Belgesine Aktar ↗</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const TRH2010_E = {20:54.3,25:49.5,30:44.7,35:39.9,40:35.2,42:33.4,45:30.6,50:26.1,55:21.8,60:17.8,65:14.1,70:11.0,75:8.4,80:6.2};
+const TRH2010_K = {20:58.9,25:54.1,30:49.3,35:44.5,40:39.8,42:37.9,45:35.2,50:30.6,55:26.2,60:21.9,65:17.9,70:14.2,75:11.0,80:8.3};
+
+function getBeklenenOmur(yas, cinsiyet){
+  const tbl = cinsiyet==='E' ? TRH2010_E : TRH2010_K;
+  const keys = Object.keys(tbl).map(Number).sort((a,b)=>a-b);
+  for(let i=0;i<keys.length-1;i++){
+    if(yas>=keys[i] && yas<keys[i+1]){
+      const t=(yas-keys[i])/(keys[i+1]-keys[i]);
+      return tbl[keys[i]]*(1-t)+tbl[keys[i+1]]*t;
+    }
+  }
+  if(yas<=keys[0]) return tbl[keys[0]];
+  return tbl[keys[keys.length-1]];
+}
+
+function pvAnnuity(r, n){
+  if(r===0) return n;
+  return (1-Math.pow(1+r,-n))/r;
+}
+
+function fmt(n){ return new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY',maximumFractionDigits:0}).format(n); }
+
+let lastCalc = null;
+
+function hesaplaIsg(){
+  const dogum = new Date(document.getElementById('dogum').value);
+  const kaza = new Date(document.getElementById('kaza').value);
+  const cinsiyet = document.getElementById('cinsiyet').value;
+  const maluliyet = parseFloat(document.getElementById('maluliyet').value)/100;
+  const gelir = parseFloat(document.getElementById('gelir').value);
+  const emeklilik = parseFloat(document.getElementById('emeklilik').value);
+  const iskonto = parseFloat(document.getElementById('iskonto').value)/100;
+
+  const yas = Math.floor((kaza-dogum)/(365.25*24*3600*1000));
+  const beklenenOmur = getBeklenenOmur(yas, cinsiyet);
+  const toplamOmur = yas + beklenenOmur;
+  const aktifYil = Math.max(0, emeklilik - yas);
+  const pasifYil = Math.max(0, toplamOmur - emeklilik);
+  const yillikGelir = gelir * 12;
+
+  const pvAktif = pvAnnuity(iskonto, aktifYil);
+  const pvPasif = pvAnnuity(iskonto, pasifYil) * Math.pow(1+iskonto, -aktifYil);
+
+  const aktifTaz = yillikGelir * maluliyet * pvAktif;
+  const pasifTaz = yillikGelir * maluliyet * 0.6 * pvPasif;
+  const toplam = aktifTaz + pasifTaz;
+
+  document.getElementById('r-yas').textContent = yas + ' yaş';
+  document.getElementById('r-aktif').textContent = aktifYil.toFixed(1);
+  document.getElementById('r-pasif').textContent = pasifYil.toFixed(1);
+  document.getElementById('r-yillik').textContent = fmt(yillikGelir);
+  document.getElementById('r-maluliyet-oran').textContent = (maluliyet*100).toFixed(0) + '%';
+  document.getElementById('r-aktif-taz').textContent = fmt(aktifTaz);
+  document.getElementById('r-pasif-taz').textContent = fmt(pasifTaz);
+  document.getElementById('r-toplam').textContent = fmt(toplam);
+  document.getElementById('isg-results').style.display='block';
+
+  lastCalc = {tip:'İşgöremezlik', yas, aktifYil, pasifYil, maluliyet:(maluliyet*100).toFixed(0), gelir, iskonto:(iskonto*100).toFixed(0), toplam, aktifTaz, pasifTaz};
+}
+
+function hesaplaDyk(){
+  const oyas = parseFloat(document.getElementById('oyas').value);
+  const hyas = parseFloat(document.getElementById('hyas').value);
+  const ocinsiyet = document.getElementById('ocinsiyet').value;
+  const hcinsiyet = document.getElementById('hcinsiyet').value;
+  const ogelir = parseFloat(document.getElementById('ogelir').value);
+  const pay = parseFloat(document.getElementById('pay').value)/100;
+  const diskonto = parseFloat(document.getElementById('diskonto').value)/100;
+
+  const beklenenH = getBeklenenOmur(hyas, hcinsiyet);
+  const beklenenO = getBeklenenOmur(oyas, ocinsiyet);
+  const destekSure = Math.min(beklenenH, beklenenO);
+  const yillikDestek = ogelir * 12 * pay;
+  const pv = pvAnnuity(diskonto, destekSure);
+  const toplam = yillikDestek * pv;
+
+  document.getElementById('d-yillik').textContent = fmt(yillikDestek);
+  document.getElementById('d-pay').textContent = (pay*100).toFixed(0) + '%';
+  document.getElementById('d-beklenen').textContent = beklenenH.toFixed(1) + ' yıl';
+  document.getElementById('d-sure').textContent = destekSure.toFixed(1) + ' yıl';
+  document.getElementById('d-toplam').textContent = fmt(toplam);
+  document.getElementById('dyk-results').style.display='block';
+
+  lastCalc = {tip:'Destekten Yoksun Kalma', oyas, hyas, sure:destekSure, gelir:ogelir, pay:(pay*100).toFixed(0), diskonto:(diskonto*100).toFixed(0), toplam};
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  event.target.classList.add('active');
+
+  if(name==='rapor' && lastCalc){
+    document.getElementById('rapor-bos').style.display='none';
+    document.getElementById('rapor-icerik').style.display='block';
+    document.getElementById('rapor-iskonto-oran').textContent=lastCalc.iskonto||lastCalc.diskonto||'10';
+    if(lastCalc.tip==='İşgöremezlik'){
+      document.getElementById('rapor-dayanaklar').innerHTML=`
+        <div class="info-row"><span class="info-key">Hesaplama türü</span><span class="info-val">İşgöremezlik Tazminatı</span></div>
+        <div class="info-row"><span class="info-key">Kaza anındaki yaş</span><span class="info-val">${lastCalc.yas} yaş</span></div>
+        <div class="info-row"><span class="info-key">Maluliyet oranı</span><span class="info-val">${lastCalc.maluliyet}%</span></div>
+        <div class="info-row"><span class="info-key">Aylık net gelir</span><span class="info-val">${fmt(lastCalc.gelir)}</span></div>`;
+      document.getElementById('rapor-sonuclar').innerHTML=`
+        <div class="report-row"><span>Aktif dönem tazminatı</span><span>${fmt(lastCalc.aktifTaz)}</span></div>
+        <div class="report-row"><span>Pasif dönem tazminatı</span><span>${fmt(lastCalc.pasifTaz)}</span></div>
+        <div class="report-row"><span>Toplam tazminat</span><span style="color:#185FA5;font-weight:500">${fmt(lastCalc.toplam)}</span></div>`;
+    } else {
+      document.getElementById('rapor-dayanaklar').innerHTML=`
+        <div class="info-row"><span class="info-key">Hesaplama türü</span><span class="info-val">Destekten Yoksun Kalma Tazminatı</span></div>
+        <div class="info-row"><span class="info-key">Ölen kişi yaşı</span><span class="info-val">${lastCalc.oyas} yaş</span></div>
+        <div class="info-row"><span class="info-key">Hak sahibi pay oranı</span><span class="info-val">${lastCalc.pay}%</span></div>
+        <div class="info-row"><span class="info-key">Destek süresi</span><span class="info-val">${lastCalc.sure.toFixed(1)} yıl</span></div>`;
+      document.getElementById('rapor-sonuclar').innerHTML=`
+        <div class="report-row"><span>Toplam tazminat</span><span style="color:#185FA5;font-weight:500">${fmt(lastCalc.toplam)}</span></div>`;
+    }
+  }
+}
+
+function showModule(id){ /* placeholder for future modules */ }
+</script>
