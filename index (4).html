@@ -1,0 +1,2507 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bilirkişilik Hesaplama Platformu</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f3;color:#1a1a1a;height:100vh;overflow:hidden}
+.platform{display:flex;height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:260px;min-width:260px;background:#fff;border-right:1px solid #e8e8e5;display:flex;flex-direction:column;overflow:hidden}
+.sidebar-header{padding:1.25rem 1rem 1rem;border-bottom:1px solid #e8e8e5}
+.logo{font-size:13px;font-weight:600;color:#1a1a1a;display:flex;align-items:center;gap:6px}
+.logo-icon{width:22px;height:22px;background:#185FA5;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700}
+.logo-sub{font-size:11px;color:#888;margin-top:3px}
+.sidebar-nav{flex:1;overflow-y:auto;padding:0.5rem 0}
+.nav-group-label{font-size:10px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.08em;padding:1rem 1rem 0.25rem}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 1rem;cursor:pointer;transition:background 0.1s;border:none;background:none;width:100%;text-align:left;color:#555;font-size:12.5px;font-family:inherit}
+.nav-item:hover{background:#f5f5f3;color:#1a1a1a}
+.nav-item.active{background:#EFF4FB;color:#185FA5;font-weight:600}
+.nav-item.locked{opacity:0.4;cursor:not-allowed}
+.nav-code{font-size:10.5px;font-family:monospace;background:#f0f0ee;padding:2px 5px;border-radius:4px;min-width:36px;text-align:center;color:#666}
+.nav-item.active .nav-code{background:#D0E4F7;color:#185FA5}
+.nav-badge{margin-left:auto;font-size:10px;padding:2px 6px;border-radius:4px;background:#EAF3DE;color:#3B6D11;font-weight:600}
+.nav-badge.new{background:#EAF3DE;color:#3B6D11}
+.lock-icon{margin-left:auto;font-size:12px;color:#ccc}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;background:#f5f5f3}
+.module-panel{display:none;flex-direction:column;height:100%}
+.module-panel.active{display:flex}
+.topbar{padding:0.875rem 1.5rem;border-bottom:1px solid #e8e8e5;background:#fff;display:flex;align-items:center;gap:1rem;flex-shrink:0}
+.breadcrumb{font-size:12px;color:#aaa}
+.breadcrumb span{color:#555;font-weight:500}
+.content{padding:1.25rem 1.5rem;flex:1;overflow-y:auto}
+
+/* MODULE HERO */
+.module-hero{background:#fff;border:1px solid #e8e8e5;border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1rem}
+.module-title{font-size:16px;font-weight:600;color:#1a1a1a;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.module-title-icon{width:28px;height:28px;border-radius:7px;background:#EFF4FB;display:flex;align-items:center;justify-content:center;font-size:14px}
+.module-desc{font-size:13px;color:#666;line-height:1.55}
+
+/* TABS */
+.tabs{display:flex;background:#fff;border:1px solid #e8e8e5;border-radius:10px 10px 0 0;overflow:hidden;border-bottom:none;margin-bottom:0;flex-shrink:0}
+.tab{padding:10px 16px;font-size:13px;color:#888;cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:all 0.15s;font-family:inherit;white-space:nowrap}
+.tab:hover{color:#1a1a1a;background:#f9f9f8}
+.tab.active{color:#185FA5;border-bottom:2px solid #185FA5;font-weight:600;background:#fff}
+.tab-body{background:#fff;border:1px solid #e8e8e5;border-radius:0 0 10px 10px;padding:1.25rem;margin-bottom:1rem}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* CARDS & FORMS */
+.card{background:#fff;border:1px solid #e8e8e5;border-radius:10px;padding:1.25rem;margin-bottom:1rem}
+.card-title{font-size:13.5px;font-weight:600;color:#1a1a1a;margin-bottom:1rem;display:flex;align-items:center;gap:7px}
+.card-title-icon{color:#185FA5;font-size:15px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group.full{grid-column:1/-1}
+label{font-size:11.5px;color:#777;font-weight:500}
+input[type=text],input[type=number],input[type=date],select{width:100%;padding:7px 10px;border:1px solid #e0e0dd;border-radius:7px;font-size:13px;color:#1a1a1a;background:#fff;font-family:inherit;outline:none;transition:border 0.15s}
+input:focus,select:focus{border-color:#185FA5}
+.calc-btn{width:100%;padding:10px;font-size:13.5px;font-weight:600;background:#185FA5;color:#fff;border:none;border-radius:8px;cursor:pointer;margin-top:10px;transition:background 0.15s;font-family:inherit}
+.calc-btn:hover{background:#0C447C}
+.calc-btn.secondary{background:#f5f5f3;color:#1a1a1a;border:1px solid #e0e0dd}
+.calc-btn.secondary:hover{background:#eee}
+
+/* RESULTS */
+.results-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
+.result-card{background:#f7f7f5;border-radius:8px;padding:11px 13px}
+.result-label{font-size:11px;color:#999;margin-bottom:3px}
+.result-val{font-size:17px;font-weight:600;color:#1a1a1a}
+.result-val.blue{color:#185FA5}
+.result-note{font-size:11px;color:#aaa;margin-top:2px}
+
+/* REPORT */
+.report-section{background:#f7f7f5;border-radius:8px;padding:12px 14px;margin-bottom:10px;font-size:13px;line-height:1.6}
+.report-section h4{font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px}
+.report-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #ededea}
+.report-row:last-child{border-bottom:none;font-weight:600;padding-top:6px;font-size:13.5px}
+.report-row .val{font-weight:600;color:#185FA5}
+
+/* MEVZUAT */
+.mevzuat-item{padding:10px 12px;border:1px solid #e8e8e5;border-radius:8px;margin-bottom:8px}
+.mevzuat-title{font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:3px}
+.mevzuat-src{font-size:11.5px;color:#888;line-height:1.5}
+
+/* ALERTS */
+.alert-info{background:#EFF4FB;border:1px solid #C8DDEF;border-radius:8px;padding:10px 14px;font-size:12.5px;color:#185FA5;margin-bottom:1rem;line-height:1.55}
+.alert-warn{background:#FFF8EC;border:1px solid #F0D080;border-radius:8px;padding:10px 14px;font-size:12.5px;color:#7a5010;margin-bottom:1rem;line-height:1.55}
+
+/* COMING SOON */
+.coming-soon{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem;text-align:center;gap:10px;min-height:300px}
+.coming-icon{font-size:2.5rem;margin-bottom:4px}
+.coming-title{font-size:15px;font-weight:600;color:#1a1a1a}
+.coming-desc{font-size:13px;color:#888;max-width:320px;line-height:1.6}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sidebar{width:220px;min-width:220px}
+  .results-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="platform">
+
+<!-- ═══════════════════════════════ SIDEBAR ═══════════════════════════════ -->
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <div class="logo-icon">BK</div>
+      Bilirkişilik Platformu
+    </div>
+    <div class="logo-sub">Adalet Bakanlığı · 62. Seri</div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-group-label">Tamamlanan Modüller</div>
+    <button class="nav-item active" onclick="showModule('6201')">
+      <span class="nav-code">62.01</span>Aktüerya
+      <span class="nav-badge">✓</span>
+    </button>
+    <button class="nav-item" onclick="showModule('6202')">
+      <span class="nav-code">62.02</span>İş Mevzuatı
+      <span class="nav-badge new">Yeni</span>
+    </button>
+    <button class="nav-item" onclick="showModule('6203')">
+      <span class="nav-code">62.03</span>Sosyal Güvenlik
+      <span class="nav-badge new">Yeni</span>
+    </button>
+
+    <div class="nav-group-label">Yakında</div>
+    <button class="nav-item" onclick="showModule('6204')"><span class="nav-code">62.04</span>Toplu İş Sözl.<span class="nav-badge new">Yeni</span></button>
+    <button class="nav-item" onclick="showModule('6205')"><span class="nav-code">62.05</span>İcra ve İflas<span class="nav-badge new">Yeni</span></button>
+    <button class="nav-item" onclick="showModule('6206')"><span class="nav-code">62.06</span>Aile ve Miras<span class="nav-badge new">Yeni</span></button>
+    <button class="nav-item" onclick="showModule('6207')"><span class="nav-code">62.07</span>Kooperatifler<span class="nav-badge new">Yeni</span></button>
+    <button class="nav-item" onclick="showModule('6208')"><span class="nav-code">62.08</span>Kat Mülkiyeti<span class="nav-badge new">Yeni</span></button>
+    <button class="nav-item" onclick="showModule('6209')"><span class="nav-code">62.09</span>Tüketici<span class="nav-badge new">Yeni</span></button>
+    <button class="nav-item" onclick="showModule('6210')"><span class="nav-code">62.10</span>Borçlar<span class="nav-badge new">Yeni</span></button>
+    <button class="nav-item" onclick="showModule('6211')"><span class="nav-code">62.11</span>Ticaret<span class="nav-badge new">Yeni</span></button>
+    <button class="nav-item" onclick="showModule('6212')"><span class="nav-code">62.12</span>Bankacılık<span class="nav-badge new">Yeni</span></button>
+    <button class="nav-item locked"><span class="nav-code">62.13</span>Avukatlık Ücreti<span class="lock-icon">🔒</span></button>
+    <button class="nav-item locked"><span class="nav-code">62.14</span>Kamu İhale<span class="lock-icon">🔒</span></button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ MAIN ═══════════════════════════════ -->
+<div class="main">
+
+<!-- ─────────────── 62.01 AKTÜERİ ─────────────── -->
+<div class="module-panel active" id="panel-6201">
+  <div class="topbar">
+    <div class="breadcrumb">Platform › <span>62.01 — Aktüerya (İşgöremezlik / Destekten Yoksun Kalma)</span></div>
+  </div>
+  <div class="content">
+    <div class="module-hero">
+      <div class="module-title"><div class="module-title-icon">⚖️</div>62.01 Aktüerya</div>
+      <div class="module-desc">PMF ve TRH-2010 yaşam tablosu esas alınarak iş göremezlik ve destekten yoksun kalma tazminatı hesaplamaları. Yargıtay HGK 17.04.2017 içtihadı uyumlu.</div>
+    </div>
+
+    <div class="tabs" id="tabs-6201">
+      <button class="tab active" onclick="switchTab('6201','isg',this)">İşgöremezlik</button>
+      <button class="tab" onclick="switchTab('6201','dyk',this)">Destekten Yoksun Kalma</button>
+      <button class="tab" onclick="switchTab('6201','mevzuat',this)">Mevzuat</button>
+      <button class="tab" onclick="switchTab('6201','rapor',this)">Rapor</button>
+    </div>
+    <div class="tab-body">
+
+      <!-- ISG -->
+      <div class="tab-content active" id="6201-isg">
+        <div class="alert-info">TRH-2010 yaşam tablosu ve %10 iskonto oranı esas alınmaktadır. Yargıtay HGK 17.04.2017 kararı doğrultusunda.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">👤</span>Zarar gören bilgileri</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Doğum tarihi</label><input type="date" id="i-dogum" value="1985-06-15"></div>
+            <div class="form-group"><label>Kaza tarihi</label><input type="date" id="i-kaza" value="2024-03-10"></div>
+            <div class="form-group"><label>Cinsiyet</label><select id="i-cinsiyet"><option value="E">Erkek</option><option value="K">Kadın</option></select></div>
+            <div class="form-group"><label>Maluliyet oranı (%)</label><input type="number" id="i-maluliyet" value="25" min="1" max="100"></div>
+            <div class="form-group"><label>Aylık net gelir (₺)</label><input type="number" id="i-gelir" value="35000"></div>
+            <div class="form-group"><label>Emeklilik yaşı</label><input type="number" id="i-emeklilik" value="65"></div>
+            <div class="form-group full"><label>İskonto oranı (%)</label><input type="number" id="i-iskonto" value="10" step="0.5"></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaIsg()">Tazminatı Hesapla</button>
+        </div>
+        <div id="isg-results" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Kaza anındaki yaş</div><div class="result-val" id="r-yas">—</div></div>
+            <div class="result-card"><div class="result-label">Aktif dönem (yıl)</div><div class="result-val" id="r-aktif">—</div></div>
+            <div class="result-card"><div class="result-label">Pasif dönem (yıl)</div><div class="result-val" id="r-pasif">—</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">💰</span>Hesap sonucu</div>
+            <div class="report-section">
+              <div class="report-row"><span>Yıllık net gelir</span><span id="r-yillik" class="val">—</span></div>
+              <div class="report-row"><span>Maluliyet oranı</span><span id="r-mal-oran" class="val">—</span></div>
+              <div class="report-row"><span>Aktif dönem tazminatı</span><span id="r-aktif-taz" class="val">—</span></div>
+              <div class="report-row"><span>Pasif dönem tazminatı</span><span id="r-pasif-taz" class="val">—</span></div>
+              <div class="report-row"><span>Toplam tazminat</span><span id="r-toplam" class="val">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DYK -->
+      <div class="tab-content" id="6201-dyk">
+        <div class="alert-info">TBK m.53 ve Yargıtay 17. HD uygulaması doğrultusunda destekten yoksun kalma tazminatı.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">👥</span>Ölen kişi ve hak sahibi</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Ölüm tarihi</label><input type="date" id="d-olum" value="2024-01-15"></div>
+            <div class="form-group"><label>Ölenin yaşı</label><input type="number" id="d-oyas" value="42"></div>
+            <div class="form-group"><label>Ölenin cinsiyeti</label><select id="d-ocinsiyet"><option value="E">Erkek</option><option value="K">Kadın</option></select></div>
+            <div class="form-group"><label>Aylık net gelir (₺)</label><input type="number" id="d-gelir" value="45000"></div>
+            <div class="form-group"><label>Hak sahibi yaşı</label><input type="number" id="d-hyas" value="38"></div>
+            <div class="form-group"><label>Hak sahibi cinsiyeti</label><select id="d-hcinsiyet"><option value="K">Kadın</option><option value="E">Erkek</option></select></div>
+            <div class="form-group"><label>Pay oranı (%)</label><input type="number" id="d-pay" value="50"></div>
+            <div class="form-group"><label>İskonto oranı (%)</label><input type="number" id="d-iskonto" value="10" step="0.5"></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaDyk()">Tazminatı Hesapla</button>
+        </div>
+        <div id="dyk-results" style="display:none">
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">💰</span>Hesap sonucu</div>
+            <div class="report-section">
+              <div class="report-row"><span>Yıllık destek</span><span id="d-yillik" class="val">—</span></div>
+              <div class="report-row"><span>Hak sahibi pay oranı</span><span id="d-pay-oran" class="val">—</span></div>
+              <div class="report-row"><span>Destek süresi (TRH-2010)</span><span id="d-sure" class="val">—</span></div>
+              <div class="report-row"><span>Toplam tazminat</span><span id="d-toplam" class="val">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MEVZUAT 6201 -->
+      <div class="tab-content" id="6201-mevzuat">
+        <div class="mevzuat-item"><div class="mevzuat-title">TBK Madde 54 — Bedensel zararlar</div><div class="mevzuat-src">Kazanç kaybı, çalışma gücünün azalması veya yitirilmesi, ekonomik geleceğin sarsılması</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">TBK Madde 53 — Ölüm hâlinde zararlar</div><div class="mevzuat-src">Cenaze giderleri, ölüme yol açan tedavi giderleri, destekten yoksun kalma zararı</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">Yargıtay HGK 17.04.2017 — 2017/17-95 E.</div><div class="mevzuat-src">TRH-2010 yaşam tablosunun uygulanması ve %10 iskonto oranı standardı</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">Yargıtay 17. HD — 2016/12456 E.</div><div class="mevzuat-src">Hak sahibi başlangıç/bitiş yaşı belirlenmesi</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">TRH-2010 Mortalite Tablosu</div><div class="mevzuat-src">Hazine Müsteşarlığı — Türkiye yaşam beklentisi tabloları (erkek/kadın)</div></div>
+      </div>
+
+      <!-- RAPOR 6201 -->
+      <div class="tab-content" id="6201-rapor">
+        <div id="rapor-6201-bos" style="color:#aaa;font-size:13px;padding:1rem 0">Önce hesaplama sekmesinden bir hesaplama yapınız.</div>
+        <div id="rapor-6201-icerik" style="display:none">
+          <div class="report-section"><h4>Hesaplama bilgileri</h4><div id="rapor-6201-detay"></div></div>
+          <div class="report-section"><h4>Yöntem</h4><div style="font-size:13px;color:#666;line-height:1.7">TRH-2010 yaşam tablosu esas alınmış, aktif ve pasif dönem tazminatları ayrı hesaplanmıştır. İskonto oranı: %<span id="rapor-6201-iskonto">10</span>. Yargıtay HGK 17.04.2017 kararı uygulanmıştır.</div></div>
+          <div class="report-section"><h4>Sonuç</h4><div id="rapor-6201-sonuc"></div></div>
+        </div>
+      </div>
+
+    </div><!-- /tab-body -->
+  </div><!-- /content -->
+</div><!-- /panel-6201 -->
+
+
+<!-- ─────────────── 62.02 İŞ MEVZUATI ─────────────── -->
+<div class="module-panel" id="panel-6202">
+  <div class="topbar">
+    <div class="breadcrumb">Platform › <span>62.02 — İş Mevzuatından Kaynaklı Nitelikli Hesaplamalar</span></div>
+  </div>
+  <div class="content">
+    <div class="module-hero">
+      <div class="module-title"><div class="module-title-icon">📋</div>62.02 İş Mevzuatı Hesaplamaları</div>
+      <div class="module-desc">4857 sayılı İş Kanunu kapsamında kıdem tazminatı, ihbar tazminatı, fazla mesai alacağı ve yıllık izin ücreti hesaplamaları. Yargıtay 9. HD içtihadı uyumlu.</div>
+    </div>
+
+    <div class="tabs" id="tabs-6202">
+      <button class="tab active" onclick="switchTab('6202','kidem',this)">Kıdem Tazminatı</button>
+      <button class="tab" onclick="switchTab('6202','ihbar',this)">İhbar Tazminatı</button>
+      <button class="tab" onclick="switchTab('6202','fazla',this)">Fazla Mesai</button>
+      <button class="tab" onclick="switchTab('6202','izin',this)">Yıllık İzin</button>
+      <button class="tab" onclick="switchTab('6202','mevzuat',this)">Mevzuat</button>
+    </div>
+    <div class="tab-body">
+
+      <!-- KIDEM -->
+      <div class="tab-content active" id="6202-kidem">
+        <div class="alert-info">Kıdem tazminatı hesabında tavan sınırı (7.927,27 ₺/yıl — 2024) dikkate alınmaktadır. İşe giriş tarihinden itibaren tam yıllar ve kırık aylar ayrı hesaplanır.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">📅</span>Çalışma bilgileri</div>
+          <div class="form-grid">
+            <div class="form-group"><label>İşe giriş tarihi</label><input type="date" id="k-giris" value="2010-03-01"></div>
+            <div class="form-group"><label>İşten ayrılma tarihi</label><input type="date" id="k-cikis" value="2024-06-01"></div>
+            <div class="form-group"><label>Son brüt ücret (₺/ay)</label><input type="number" id="k-maas" value="50000"></div>
+            <div class="form-group"><label>Tavan uygulanacak mı?</label><select id="k-tavan"><option value="evet">Evet (tavan uygula)</option><option value="hayir">Hayır (tavan yok)</option></select></div>
+            <div class="form-group full"><label>Kıdem tazminatı tavanı (₺) — 2024 yılı</label><input type="number" id="k-tavan-tutar" value="35058.58"></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaKidem()">Kıdem Tazminatını Hesapla</button>
+        </div>
+        <div id="kidem-results" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Toplam çalışma süresi</div><div class="result-val" id="k-sure">—</div></div>
+            <div class="result-card"><div class="result-label">Günlük brüt ücret</div><div class="result-val" id="k-gunluk">—</div></div>
+            <div class="result-card"><div class="result-label">Kıdem tazminatı</div><div class="result-val blue" id="k-toplam">—</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">📊</span>Hesap detayı</div>
+            <div class="report-section">
+              <div class="report-row"><span>Çalışma süresi (yıl)</span><span id="k-yil" class="val">—</span></div>
+              <div class="report-row"><span>Yıllık tazminat tabanı</span><span id="k-yillik-taban" class="val">—</span></div>
+              <div class="report-row"><span>Tavan durumu</span><span id="k-tavan-durum" class="val">—</span></div>
+              <div class="report-row"><span>Hesaplanan kıdem tazminatı</span><span id="k-net" class="val">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- IHBAR -->
+      <div class="tab-content" id="6202-ihbar">
+        <div class="alert-info">İhbar tazminatı, İş Kanunu m.17 kapsamında bildirim sürelerine göre hesaplanır. 6 aydan az: 2 hafta; 6 ay–1.5 yıl: 4 hafta; 1.5–3 yıl: 6 hafta; 3 yıl üzeri: 8 hafta.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">📄</span>Bildirim süresi hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>İşe giriş tarihi</label><input type="date" id="ih-giris" value="2015-01-01"></div>
+            <div class="form-group"><label>İşten ayrılma tarihi</label><input type="date" id="ih-cikis" value="2024-06-01"></div>
+            <div class="form-group full"><label>Günlük brüt ücret (₺)</label><input type="number" id="ih-gunluk" value="1800"></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaIhbar()">İhbar Tazminatını Hesapla</button>
+        </div>
+        <div id="ihbar-results" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Çalışma süresi</div><div class="result-val" id="ih-sure">—</div></div>
+            <div class="result-card"><div class="result-label">Bildirim süresi</div><div class="result-val" id="ih-bildirim">—</div></div>
+            <div class="result-card"><div class="result-label">İhbar tazminatı</div><div class="result-val blue" id="ih-toplam">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAZLA MESAİ -->
+      <div class="tab-content" id="6202-fazla">
+        <div class="alert-info">Haftalık 45 saati aşan çalışmalar için %50 zamlı, gece fazla mesaisi için %25 zamlı ücret ödenir (İş K. m.41). Yargıtay takdiri indirim %30 olarak uygulanmaktadır.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">⏱️</span>Fazla mesai hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Saatlik brüt ücret (₺)</label><input type="number" id="fm-saatlik" value="250"></div>
+            <div class="form-group"><label>Haftalık fazla mesai saati</label><input type="number" id="fm-saat" value="10" step="0.5"></div>
+            <div class="form-group"><label>Hesaplama dönemi (ay)</label><input type="number" id="fm-ay" value="12"></div>
+            <div class="form-group"><label>Zam oranı</label><select id="fm-zam"><option value="1.5">%50 — normal fazla mesai</option><option value="1.25">%25 — gece fazla mesaisi</option></select></div>
+            <div class="form-group full"><label>Yargıtay takdiri indirim (%)</label><input type="number" id="fm-indirim" value="30" min="0" max="50"></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaFazla()">Fazla Mesai Alacağını Hesapla</button>
+        </div>
+        <div id="fazla-results" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Brüt fazla mesai</div><div class="result-val" id="fm-brut">—</div></div>
+            <div class="result-card"><div class="result-label">Takdiri indirim</div><div class="result-val" id="fm-indirim-tutar">—</div></div>
+            <div class="result-card"><div class="result-label">Net alacak</div><div class="result-val blue" id="fm-net">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- YILLIK İZİN -->
+      <div class="tab-content" id="6202-izin">
+        <div class="alert-info">Yıllık ücretli izin hakkı kıdeme göre belirlenir: 1–5 yıl = 14 gün, 5–15 yıl = 20 gün, 15 yıl üzeri = 26 gün (İş K. m.53).</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">🏖️</span>Yıllık izin ücreti hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>İşe giriş tarihi</label><input type="date" id="iz-giris" value="2012-05-01"></div>
+            <div class="form-group"><label>Hesap tarihi</label><input type="date" id="iz-tarih" value="2024-06-01"></div>
+            <div class="form-group"><label>Günlük brüt ücret (₺)</label><input type="number" id="iz-gunluk" value="1800"></div>
+            <div class="form-group"><label>Kullanılmayan izin günü</label><input type="number" id="iz-gun" value="30"></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaIzin()">İzin Ücretini Hesapla</button>
+        </div>
+        <div id="izin-results" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Çalışma süresi</div><div class="result-val" id="iz-sure">—</div></div>
+            <div class="result-card"><div class="result-label">Hak edilen izin/yıl</div><div class="result-val" id="iz-hakediş">—</div></div>
+            <div class="result-card"><div class="result-label">İzin ücreti alacağı</div><div class="result-val blue" id="iz-toplam">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MEVZUAT 6202 -->
+      <div class="tab-content" id="6202-mevzuat">
+        <div class="mevzuat-item"><div class="mevzuat-title">4857 sayılı İş Kanunu — Madde 14 (Kıdem)</div><div class="mevzuat-src">Her tam çalışma yılı için 30 günlük brüt ücret tutarında kıdem tazminatı. Tavan: Yüksek Hakem Kurulu tarafından belirlenir.</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">4857 sayılı İş Kanunu — Madde 17 (İhbar)</div><div class="mevzuat-src">Süresi belirsiz iş sözleşmelerinin feshinde kıdeme göre bildirim süreleri ve tazminat</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">4857 sayılı İş Kanunu — Madde 41 (Fazla mesai)</div><div class="mevzuat-src">Haftalık 45 saati aşan çalışma: %50 zamlı; gece dönemi fazla çalışma: %25 zamlı ücret</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">4857 sayılı İş Kanunu — Madde 53 (Yıllık izin)</div><div class="mevzuat-src">Kıdeme göre 14–26 gün yıllık ücretli izin hakkı; iş sözleşmesi sona erdiğinde kullanılmayan izin ücreti ödenir</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">Yargıtay 9. HD — Takdiri indirim uygulaması</div><div class="mevzuat-src">Fazla mesai ve yıllık izin alacaklarında %30 takdiri indirim içtihadı</div></div>
+      </div>
+
+    </div>
+  </div>
+</div><!-- /panel-6202 -->
+
+
+<!-- ─────────────── 62.03 SOSYAL GÜVENLİK ─────────────── -->
+<div class="module-panel" id="panel-6203">
+  <div class="topbar">
+    <div class="breadcrumb">Platform › <span>62.03 — Sosyal Güvenlik Mevzuatından Kaynaklı Nitelikli Hesaplamalar</span></div>
+  </div>
+  <div class="content">
+    <div class="module-hero">
+      <div class="module-title"><div class="module-title-icon">🏥</div>62.03 Sosyal Güvenlik Hesaplamaları</div>
+      <div class="module-desc">5510 sayılı SGK Kanunu kapsamında prim borcu, gecikme zammı, eksik gün tescili ve iş kazası rücuan tazminatı hesaplamaları.</div>
+    </div>
+
+    <div class="tabs" id="tabs-6203">
+      <button class="tab active" onclick="switchTab('6203','prim',this)">SGK Prim Borcu</button>
+      <button class="tab" onclick="switchTab('6203','gecikme',this)">Gecikme Zammı</button>
+      <button class="tab" onclick="switchTab('6203','rucan',this)">Rücuan Tazminat</button>
+      <button class="tab" onclick="switchTab('6203','mevzuat',this)">Mevzuat</button>
+    </div>
+    <div class="tab-body">
+
+      <!-- PRİM BORCU -->
+      <div class="tab-content active" id="6203-prim">
+        <div class="alert-info">SGK prim oranları: İşçi payı %14 (sigorta) + %7,5 (emeklilik) = %21,5 — İşveren payı %19,5 + %22,5 = %20,5 (4/1-a kapsamı). Toplam %34.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">💼</span>Prim hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Brüt ücret (₺/ay)</label><input type="number" id="p-maas" value="35000"></div>
+            <div class="form-group"><label>Sigortalı sayısı</label><input type="number" id="p-kisi" value="1"></div>
+            <div class="form-group"><label>Dönem (ay)</label><input type="number" id="p-ay" value="12"></div>
+            <div class="form-group"><label>SGK tabanı (₺) — 2024</label><input type="number" id="p-taban" value="20002.50"></div>
+            <div class="form-group"><label>SGK tavanı (₺) — 2024</label><input type="number" id="p-tavan" value="150018.90"></div>
+            <div class="form-group"><label>Prim türü</label><select id="p-tur"><option value="tam">Tam prim (4/1-a)</option><option value="isveren">Yalnız işveren payı</option><option value="isci">Yalnız işçi payı</option></select></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaPrim()">Prim Borcunu Hesapla</button>
+        </div>
+        <div id="prim-results" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">İşçi payı (aylık)</div><div class="result-val" id="pr-isci">—</div></div>
+            <div class="result-card"><div class="result-label">İşveren payı (aylık)</div><div class="result-val" id="pr-isveren">—</div></div>
+            <div class="result-card"><div class="result-label">Toplam prim borcu</div><div class="result-val blue" id="pr-toplam">—</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">📊</span>Prim dökümü</div>
+            <div class="report-section">
+              <div class="report-row"><span>Prime esas kazanç</span><span id="pr-kazanc" class="val">—</span></div>
+              <div class="report-row"><span>İşçi sigorta + emeklilik (%21,5)</span><span id="pr-isci-ay" class="val">—</span></div>
+              <div class="report-row"><span>İşveren kısa/uzun vade (%20,5)</span><span id="pr-iv-ay" class="val">—</span></div>
+              <div class="report-row"><span>Aylık toplam prim</span><span id="pr-aylik" class="val">—</span></div>
+              <div class="report-row"><span>Dönem toplam (<span id="pr-ay-label">12</span> ay)</span><span id="pr-donem" class="val">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GECİKME ZAMMI -->
+      <div class="tab-content" id="6203-gecikme">
+        <div class="alert-info">SGK gecikme zammı aylık %3 olarak uygulanır (6183 sayılı Kanun m.51). Her ay için ayrı hesaplama yapılır, bileşik artış uygulanmaz.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">📅</span>Gecikme zammı hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Prim borcu anapara (₺)</label><input type="number" id="gz-anapara" value="100000"></div>
+            <div class="form-group"><label>Vade tarihi</label><input type="date" id="gz-vade" value="2022-01-01"></div>
+            <div class="form-group"><label>Hesap tarihi</label><input type="date" id="gz-hesap" value="2024-06-01"></div>
+            <div class="form-group"><label>Aylık gecikme zammı (%)</label><input type="number" id="gz-oran" value="3" step="0.1"></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaGecikme()">Gecikme Zammını Hesapla</button>
+        </div>
+        <div id="gecikme-results" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Gecikme süresi</div><div class="result-val" id="gz-sure">—</div></div>
+            <div class="result-card"><div class="result-label">Gecikme zammı</div><div class="result-val" id="gz-zamm">—</div></div>
+            <div class="result-card"><div class="result-label">Toplam borç</div><div class="result-val blue" id="gz-toplam">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RÜCUAN TAZMİNAT -->
+      <div class="tab-content" id="6203-rucan">
+        <div class="alert-info">SGK'nın iş kazası nedeniyle ödediği geçici/sürekli iş göremezlik ve ölüm yardımları için işverene rücuan tazminat hakkı (5510 m.21).</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">⚖️</span>Rücuan tazminat hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>SGK tarafından ödenen geçici iş göremezlik (₺)</label><input type="number" id="rc-gecici" value="50000"></div>
+            <div class="form-group"><label>SGK tarafından bağlanan sürekli iş göremezlik geliri (₺/yıl)</label><input type="number" id="rc-surekliyillik" value="120000"></div>
+            <div class="form-group"><label>Sigortalının yaşı</label><input type="number" id="rc-yas" value="35"></div>
+            <div class="form-group"><label>İşverenin kusur oranı (%)</label><input type="number" id="rc-kusur" value="100" min="0" max="100"></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaRucan()">Rücuan Tazminatı Hesapla</button>
+        </div>
+        <div id="rucan-results" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Geçici iş göremezlik</div><div class="result-val" id="rc-g">—</div></div>
+            <div class="result-card"><div class="result-label">Kapitalize gelir değeri</div><div class="result-val" id="rc-kap">—</div></div>
+            <div class="result-card"><div class="result-label">Rücuan tazminat</div><div class="result-val blue" id="rc-toplam">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MEVZUAT 6203 -->
+      <div class="tab-content" id="6203-mevzuat">
+        <div class="mevzuat-item"><div class="mevzuat-title">5510 sayılı SSGSSK — Madde 80 (Prime esas kazanç)</div><div class="mevzuat-src">Sigorta primlerinin hesaplanmasında esas alınan ücret ve kazançlar; taban ve tavan sınırları</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">5510 sayılı SSGSSK — Madde 21 (Rücu)</div><div class="mevzuat-src">İş kazası ve meslek hastalığında SGK'nın işverene, üçüncü kişilere rücu hakkı</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">6183 sayılı AATUHK — Madde 51 (Gecikme zammı)</div><div class="mevzuat-src">Aylık %3 gecikme zammı; Bakanlar Kurulu kararıyla değiştirilebilir</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">SGK Genelgesi 2022/16 — Maluliyet değerlendirme</div><div class="mevzuat-src">Çalışma gücü kayıp oranının tespiti ve belgelenmesi usulü</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">Yargıtay 10. HD — SGK rücu davaları içtihadı</div><div class="mevzuat-src">Kapitalizasyon hesabında TRH-2010 tablosu ve %10 iskonto uygulaması</div></div>
+      </div>
+
+    </div>
+  </div>
+</div><!-- /panel-6203 -->
+
+
+
+<!-- ─────────────── 62.04 TOPLU İŞ SÖZLEŞMESİ ─────────────── -->
+<div class="module-panel" id="panel-6204">
+  <div class="topbar">
+    <div class="breadcrumb">Platform › <span>62.04 — Sendikalar ve Toplu İş Sözleşmesi Mevzuatından Kaynaklı Nitelikli Hesaplamalar</span></div>
+  </div>
+  <div class="content">
+    <div class="module-hero">
+      <div class="module-title"><div class="module-title-icon">🤝</div>62.04 Toplu İş Sözleşmesi Hesaplamaları</div>
+      <div class="module-desc">6356 sayılı Sendikalar ve Toplu İş Sözleşmesi Kanunu kapsamında TİS fark alacağı, dayanışma aidatı ve grev/lokavt süre hesaplamaları.</div>
+    </div>
+    <div class="tabs" id="tabs-6204">
+      <button class="tab active" onclick="switchTab('6204','tisfark',this)">TİS Fark Alacağı</button>
+      <button class="tab" onclick="switchTab('6204','aidat',this)">Sendika Aidatı</button>
+      <button class="tab" onclick="switchTab('6204','grev',this)">Grev / Lokavt Süresi</button>
+      <button class="tab" onclick="switchTab('6204','mevzuat',this)">Mevzuat</button>
+    </div>
+    <div class="tab-body">
+
+      <!-- TİS FARK ALACAĞI -->
+      <div class="tab-content active" id="6204-tisfark">
+        <div class="alert-info">TİS kapsamındaki işçiye eski ücret ile TİS'te belirlenen yeni ücret arasındaki fark, TİS'in yürürlüğe girdiği tarihten itibaren geriye dönük olarak ödenir.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">📊</span>Ücret farkı hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>TİS yürürlük tarihi</label><input type="date" id="tf-baslangic" value="2023-01-01"></div>
+            <div class="form-group"><label>Hesap tarihi</label><input type="date" id="tf-bitis" value="2024-06-01"></div>
+            <div class="form-group"><label>Eski aylık brüt ücret (₺)</label><input type="number" id="tf-eski" value="25000"></div>
+            <div class="form-group"><label>TİS'te belirlenen brüt ücret (₺)</label><input type="number" id="tf-yeni" value="35000"></div>
+            <div class="form-group"><label>TİS zam oranı (%)</label><input type="number" id="tf-zam" value="0" step="0.1"><small style="color:#aaa;font-size:11px">Tutar girilmişse 0 bırakın</small></div>
+            <div class="form-group"><label>İkramiye farkı (₺/dönem)</label><input type="number" id="tf-ikramiye" value="0"></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaTisFark()">TİS Fark Alacağını Hesapla</button>
+        </div>
+        <div id="tisfark-results" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Dönem (ay)</div><div class="result-val" id="tf-ay">—</div></div>
+            <div class="result-card"><div class="result-label">Aylık fark</div><div class="result-val" id="tf-aylik-fark">—</div></div>
+            <div class="result-card"><div class="result-label">Toplam fark alacağı</div><div class="result-val blue" id="tf-toplam">—</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">📋</span>Döküm</div>
+            <div class="report-section">
+              <div class="report-row"><span>Eski ücret</span><span id="tf-r-eski" class="val">—</span></div>
+              <div class="report-row"><span>Yeni TİS ücreti</span><span id="tf-r-yeni" class="val">—</span></div>
+              <div class="report-row"><span>Aylık ücret farkı</span><span id="tf-r-fark" class="val">—</span></div>
+              <div class="report-row"><span>Ücret farkı toplamı</span><span id="tf-r-ucret" class="val">—</span></div>
+              <div class="report-row"><span>İkramiye farkı</span><span id="tf-r-ikramiye" class="val">—</span></div>
+              <div class="report-row"><span>Genel toplam</span><span id="tf-r-toplam" class="val">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SENDİKA AİDATI -->
+      <div class="tab-content" id="6204-aidat">
+        <div class="alert-info">Sendika aidatı üye işçinin brüt ücretinin %1'ini geçemez (6356 s.K. m.18). Dayanışma aidatı, üyelik aidatından fazla olamaz. Kesinti işverence yapılır ve sendikaya aktarılır.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">💳</span>Aidat hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Brüt ücret (₺/ay)</label><input type="number" id="ai-maas" value="30000"></div>
+            <div class="form-group"><label>Aidat oranı (%)</label><input type="number" id="ai-oran" value="1" step="0.1" max="1"></div>
+            <div class="form-group"><label>Hesap dönemi (ay)</label><input type="number" id="ai-ay" value="12"></div>
+            <div class="form-group"><label>Aidat türü</label><select id="ai-tur"><option value="uye">Üyelik aidatı</option><option value="dayanisma">Dayanışma aidatı</option></select></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaAidat()">Aidat Alacağını Hesapla</button>
+        </div>
+        <div id="aidat-results" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Aylık aidat</div><div class="result-val" id="ai-aylik">—</div></div>
+            <div class="result-card"><div class="result-label">Dönem (ay)</div><div class="result-val" id="ai-donem">—</div></div>
+            <div class="result-card"><div class="result-label">Toplam aidat alacağı</div><div class="result-val blue" id="ai-toplam">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GREV / LOKAVT SÜRESİ -->
+      <div class="tab-content" id="6204-grev">
+        <div class="alert-info">Grev ve lokavt süresinde işçiye ücret ödenmez; bu süre kıdem tazminatı hesabında dikkate alınmaz. Grev süresi SGK bildirimi ile belgelenir.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">⏸️</span>Grev/Lokavt süre etkisi</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Grev başlangıç tarihi</label><input type="date" id="gr-baslangic" value="2023-06-01"></div>
+            <div class="form-group"><label>Grev bitiş tarihi</label><input type="date" id="gr-bitis" value="2023-08-15"></div>
+            <div class="form-group"><label>Günlük brüt ücret (₺)</label><input type="number" id="gr-gunluk" value="1200"></div>
+            <div class="form-group"><label>İşçi sayısı</label><input type="number" id="gr-kisi" value="50"></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaGrev()">Grev Süresini Hesapla</button>
+        </div>
+        <div id="grev-results" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Grev süresi</div><div class="result-val" id="gr-sure">—</div></div>
+            <div class="result-card"><div class="result-label">İşçi başı ücret kaybı</div><div class="result-val" id="gr-kisi-kayip">—</div></div>
+            <div class="result-card"><div class="result-label">Toplam ücret kaybı</div><div class="result-val blue" id="gr-toplam">—</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">📋</span>Kıdem tazminatına etkisi</div>
+            <div class="report-section">
+              <div class="report-row"><span>Grev süresi (gün)</span><span id="gr-r-gun" class="val">—</span></div>
+              <div class="report-row"><span>Kıdem hesabından düşülecek süre</span><span id="gr-r-kidem" class="val">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MEVZUAT 6204 -->
+      <div class="tab-content" id="6204-mevzuat">
+        <div class="mevzuat-item"><div class="mevzuat-title">6356 sayılı Kanun — Madde 18 (Aidat)</div><div class="mevzuat-src">Sendika üyelik aidatının brüt ücretin %1'ini geçemeyeceği; işverenin keserek sendikaya aktarma yükümlülüğü</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">6356 sayılı Kanun — Madde 60 (TİS kapsamı)</div><div class="mevzuat-src">Toplu iş sözleşmesinin kapsam ve yürürlük tarihi; geriye dönük uygulama esasları</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">6356 sayılı Kanun — Madde 65 (Grev hakkı)</div><div class="mevzuat-src">Kanuni grev ve lokavt; grev süresinde ücret ödenmeyeceği ve kıdem hesabına dahil edilmeyeceği</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">Yargıtay 22. HD — TİS fark alacağı içtihadı</div><div class="mevzuat-src">TİS'in geriye dönük uygulanmasında faiz başlangıç tarihi ve hesaplama yöntemi</div></div>
+      </div>
+
+    </div>
+  </div>
+</div><!-- /panel-6204 -->
+
+
+<!-- ─────────────── 62.05 İCRA VE İFLAS ─────────────── -->
+<div class="module-panel" id="panel-6205">
+  <div class="topbar">
+    <div class="breadcrumb">Platform › <span>62.05 — İcra ve İflas Mevzuatından Kaynaklı Nitelikli Hesaplamalar</span></div>
+  </div>
+  <div class="content">
+    <div class="module-hero">
+      <div class="module-title"><div class="module-title-icon">⚖️</div>62.05 İcra ve İflas Hesaplamaları</div>
+      <div class="module-desc">2004 sayılı İcra İflas Kanunu kapsamında icra takip alacağı, yasal/temerrüt faizi, icra masrafları ve iflas alacak sırası hesaplamaları.</div>
+    </div>
+    <div class="tabs" id="tabs-6205">
+      <button class="tab active" onclick="switchTab('6205','faiz',this)">Faiz Hesabı</button>
+      <button class="tab" onclick="switchTab('6205','masraf',this)">İcra Masrafları</button>
+      <button class="tab" onclick="switchTab('6205','iflas',this)">İflas Alacak Sırası</button>
+      <button class="tab" onclick="switchTab('6205','mevzuat',this)">Mevzuat</button>
+    </div>
+    <div class="tab-body">
+
+      <!-- FAİZ HESABI -->
+      <div class="tab-content active" id="6205-faiz">
+        <div class="alert-info">Yasal faiz oranı: %9/yıl (3095 s.K.). Ticari işlerde temerrüt faizi Merkez Bankası kısa vadeli avans oranı + %30. Döviz alacaklarında % 4,5/yıl yasal faiz uygulanır.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">💹</span>Alacak faiz hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Alacak anapara (₺)</label><input type="number" id="fz-anapara" value="500000"></div>
+            <div class="form-group"><label>Faiz başlangıç tarihi</label><input type="date" id="fz-baslangic" value="2022-01-01"></div>
+            <div class="form-group"><label>Faiz bitiş tarihi</label><input type="date" id="fz-bitis" value="2024-06-01"></div>
+            <div class="form-group"><label>Faiz türü</label><select id="fz-tur">
+              <option value="9">Yasal faiz (%9/yıl)</option>
+              <option value="4.5">Döviz yasal faizi (%4,5/yıl)</option>
+              <option value="ozel">Özel oran (aşağıya girin)</option>
+            </select></div>
+            <div class="form-group"><label>Özel faiz oranı (%/yıl)</label><input type="number" id="fz-ozel" value="9" step="0.1"></div>
+            <div class="form-group"><label>Faiz hesaplama yöntemi</label><select id="fz-yontem">
+              <option value="basit">Basit faiz</option>
+              <option value="bileşik">Bileşik faiz</option>
+            </select></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaFaiz()">Faizi Hesapla</button>
+        </div>
+        <div id="faiz-results" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Süre</div><div class="result-val" id="fz-sure">—</div></div>
+            <div class="result-card"><div class="result-label">Toplam faiz</div><div class="result-val" id="fz-faiz">—</div></div>
+            <div class="result-card"><div class="result-label">Anapara + Faiz</div><div class="result-val blue" id="fz-toplam">—</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">📋</span>Faiz döküm tablosu</div>
+            <div class="report-section">
+              <div class="report-row"><span>Anapara</span><span id="fz-r-anapara" class="val">—</span></div>
+              <div class="report-row"><span>Faiz oranı</span><span id="fz-r-oran" class="val">—</span></div>
+              <div class="report-row"><span>Faiz süresi</span><span id="fz-r-sure" class="val">—</span></div>
+              <div class="report-row"><span>Hesaplanan faiz</span><span id="fz-r-faiz" class="val">—</span></div>
+              <div class="report-row"><span>Toplam alacak</span><span id="fz-r-toplam" class="val">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- İCRA MASRAFLARI -->
+      <div class="tab-content" id="6205-masraf">
+        <div class="alert-info">İcra takip masrafları; harç, vekalet ücreti ve diğer giderlerden oluşur. Başvurma harcı sabit; icra harcı takip miktarına göre binde oranında hesaplanır (492 s.K.).</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">🧾</span>İcra masraf hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Takip anapara (₺)</label><input type="number" id="ms-anapara" value="200000"></div>
+            <div class="form-group"><label>Takip türü</label><select id="ms-tur">
+              <option value="ilamsiz">İlamsız takip</option>
+              <option value="ilamli">İlamlı takip</option>
+              <option value="kambiyo">Kambiyo senedi</option>
+            </select></div>
+            <div class="form-group"><label>Başvurma harcı (₺) — 2024</label><input type="number" id="ms-basvuru" value="179.90"></div>
+            <div class="form-group"><label>Peşin harç oranı (‰)</label><input type="number" id="ms-pesin" value="4.55" step="0.01"></div>
+            <div class="form-group"><label>Vekalet ücreti (₺)</label><input type="number" id="ms-vekalet" value="15000"></div>
+            <div class="form-group"><label>Tebligat gideri (₺)</label><input type="number" id="ms-tebligat" value="500"></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaMasraf()">Masrafları Hesapla</button>
+        </div>
+        <div id="masraf-results" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Toplam harç</div><div class="result-val" id="ms-harc">—</div></div>
+            <div class="result-card"><div class="result-label">Vekalet + diğer</div><div class="result-val" id="ms-diger">—</div></div>
+            <div class="result-card"><div class="result-label">Toplam masraf</div><div class="result-val blue" id="ms-toplam">—</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">📋</span>Masraf döküm</div>
+            <div class="report-section">
+              <div class="report-row"><span>Başvurma harcı</span><span id="ms-r-basvuru" class="val">—</span></div>
+              <div class="report-row"><span>Peşin icra harcı (‰<span id="ms-r-pesin-oran">4,55</span>)</span><span id="ms-r-pesin" class="val">—</span></div>
+              <div class="report-row"><span>Vekalet ücreti</span><span id="ms-r-vekalet" class="val">—</span></div>
+              <div class="report-row"><span>Tebligat gideri</span><span id="ms-r-tebligat" class="val">—</span></div>
+              <div class="report-row"><span>Genel toplam</span><span id="ms-r-toplam" class="val">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- İFLAS ALACAK SIRASI -->
+      <div class="tab-content" id="6205-iflas">
+        <div class="alert-info">İflas masasında alacaklar sıraya göre ödenir: 1. sıra işçi alacakları (3 aylık), 2. sıra nafaka, 3. sıra rehinli alacaklar, 4. sıra imtiyazlı, 5. sıra adi alacaklar (İİK m.206).</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">📋</span>Alacak sırası ve ödeme hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>İflas masası toplam aktifi (₺)</label><input type="number" id="if-aktif" value="5000000"></div>
+            <div class="form-group"><label>Masraf ve harçlar (₺)</label><input type="number" id="if-masraf" value="200000"></div>
+            <div class="form-group"><label>1. sıra işçi alacakları (₺)</label><input type="number" id="if-s1" value="800000"></div>
+            <div class="form-group"><label>2. sıra nafaka alacakları (₺)</label><input type="number" id="if-s2" value="100000"></div>
+            <div class="form-group"><label>3. sıra rehinli alacaklar (₺)</label><input type="number" id="if-s3" value="2000000"></div>
+            <div class="form-group"><label>4. sıra imtiyazlı alacaklar (₺)</label><input type="number" id="if-s4" value="500000"></div>
+            <div class="form-group full"><label>5. sıra adi alacaklar (₺)</label><input type="number" id="if-s5" value="3000000"></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaIflas()">Ödeme Planını Hesapla</button>
+        </div>
+        <div id="iflas-results" style="display:none">
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">📊</span>Ödeme planı</div>
+            <div class="report-section" id="iflas-tablo"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MEVZUAT 6205 -->
+      <div class="tab-content" id="6205-mevzuat">
+        <div class="mevzuat-item"><div class="mevzuat-title">2004 sayılı İİK — Madde 206 (Alacak sırası)</div><div class="mevzuat-src">İflas masasında alacaklıların sırası; işçi alacaklarının birinci sırada imtiyazlı olduğu</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">3095 sayılı Kanun — Madde 1 (Yasal faiz)</div><div class="mevzuat-src">Borçlunun temerrüdü halinde uygulanacak yıllık %9 yasal faiz oranı</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">3095 sayılı Kanun — Madde 2 (Ticari faiz)</div><div class="mevzuat-src">Ticari işlerde temerrüt faizi; Merkez Bankası kısa vadeli avans oranına göre belirlenir</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">492 sayılı Harçlar Kanunu — İcra harçları cetveli</div><div class="mevzuat-src">Başvurma harcı, peşin harç, tahsil harcı oranları ve matrah hesabı</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">Yargıtay 12. HD — Faiz başlangıç tarihi içtihadı</div><div class="mevzuat-src">İcra takibinde faizin temerrüt tarihinden mi yoksa takip tarihinden mi işleyeceği</div></div>
+      </div>
+
+    </div>
+  </div>
+</div><!-- /panel-6205 -->
+
+
+
+<!-- ─────────────── 62.06 AİLE VE MİRAS ─────────────── -->
+<div class="module-panel" id="panel-6206">
+  <div class="topbar">
+    <div class="breadcrumb">Platform › <span>62.06 — Aile ve Miras Mevzuatından Kaynaklı Nitelikli Hesaplamalar</span></div>
+  </div>
+  <div class="content">
+    <div class="module-hero">
+      <div class="module-title"><div class="module-title-icon">👨‍👩‍👧</div>62.06 Aile ve Miras Hesaplamaları</div>
+      <div class="module-desc">4721 sayılı Türk Medeni Kanunu kapsamında nafaka hesabı, mal rejimi tasfiyesi, miras payı ve tenkis hesaplamaları.</div>
+    </div>
+    <div class="tabs" id="tabs-6206">
+      <button class="tab active" onclick="switchTab('6206','nafaka',this)">Nafaka</button>
+      <button class="tab" onclick="switchTab('6206','malrejimi',this)">Mal Rejimi Tasfiyesi</button>
+      <button class="tab" onclick="switchTab('6206','miras',this)">Miras Payı</button>
+      <button class="tab" onclick="switchTab('6206','tenkis',this)">Tenkis Hesabı</button>
+      <button class="tab" onclick="switchTab('6206','mevzuat',this)">Mevzuat</button>
+    </div>
+    <div class="tab-body">
+
+      <!-- NAFAKA -->
+      <div class="tab-content active" id="6206-nafaka">
+        <div class="alert-info">Yoksulluk nafakası ve iştirak nafakası eş/çocuk gelir durumuna göre mahkemece belirlenir. Hesaplama; geçmiş dönem birikmiş nafaka ve faiz tutarını kapsar.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">💰</span>Birikmiş nafaka alacağı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Aylık nafaka miktarı (₺)</label><input type="number" id="nf-aylik" value="5000"></div>
+            <div class="form-group"><label>Nafaka türü</label><select id="nf-tur"><option value="yoksulluk">Yoksulluk nafakası</option><option value="istirak">İştirak nafakası</option><option value="tedbir">Tedbir nafakası</option></select></div>
+            <div class="form-group"><label>Başlangıç tarihi</label><input type="date" id="nf-baslangic" value="2022-01-01"></div>
+            <div class="form-group"><label>Bitiş tarihi</label><input type="date" id="nf-bitis" value="2024-06-01"></div>
+            <div class="form-group"><label>Yasal faiz oranı (%/yıl)</label><input type="number" id="nf-faiz" value="9" step="0.1"></div>
+            <div class="form-group"><label>Ödenen nafaka (₺)</label><input type="number" id="nf-odenen" value="0"></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaNafaka()">Nafaka Alacağını Hesapla</button>
+        </div>
+        <div id="nafaka-results" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Dönem</div><div class="result-val" id="nf-donem">—</div></div>
+            <div class="result-card"><div class="result-label">Birikmiş nafaka</div><div class="result-val" id="nf-birikmis">—</div></div>
+            <div class="result-card"><div class="result-label">Faiz dahil toplam</div><div class="result-val blue" id="nf-toplam">—</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">📋</span>Döküm</div>
+            <div class="report-section">
+              <div class="report-row"><span>Toplam nafaka (ödenmemiş)</span><span id="nf-r-ana" class="val">—</span></div>
+              <div class="report-row"><span>Ödenen nafaka</span><span id="nf-r-odenen" class="val">—</span></div>
+              <div class="report-row"><span>Kalan anapara</span><span id="nf-r-kalan" class="val">—</span></div>
+              <div class="report-row"><span>Faiz alacağı (%<span id="nf-r-faiz-oran">9</span>/yıl)</span><span id="nf-r-faiz" class="val">—</span></div>
+              <div class="report-row"><span>Toplam alacak</span><span id="nf-r-toplam" class="val">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAL REJİMİ TASFİYESİ -->
+      <div class="tab-content" id="6206-malrejimi">
+        <div class="alert-info">Edinilmiş mallara katılma rejiminde her eş; kendi kişisel mallarını alır, edinilmiş malların artık değerinin yarısına katılma alacağı hakkı kazanır (TMK m.231).</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">🏠</span>Katılma alacağı hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Eş (A) edinilmiş mal toplamı (₺)</label><input type="number" id="mr-a-edinilmis" value="2000000"></div>
+            <div class="form-group"><label>Eş (A) kişisel borçları (₺)</label><input type="number" id="mr-a-borc" value="200000"></div>
+            <div class="form-group"><label>Eş (B) edinilmiş mal toplamı (₺)</label><input type="number" id="mr-b-edinilmis" value="800000"></div>
+            <div class="form-group"><label>Eş (B) kişisel borçları (₺)</label><input type="number" id="mr-b-borc" value="100000"></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaMalRejimi()">Katılma Alacağını Hesapla</button>
+        </div>
+        <div id="malrejimi-results" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Eş (A) artık değer</div><div class="result-val" id="mr-a-artik">—</div></div>
+            <div class="result-card"><div class="result-label">Eş (B) artık değer</div><div class="result-val" id="mr-b-artik">—</div></div>
+            <div class="result-card"><div class="result-label">Katılma alacağı</div><div class="result-val blue" id="mr-katilma">—</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">📋</span>Tasfiye hesabı</div>
+            <div class="report-section">
+              <div class="report-row"><span>Eş (A) artık değer</span><span id="mr-r-a" class="val">—</span></div>
+              <div class="report-row"><span>Eş (B) artık değer</span><span id="mr-r-b" class="val">—</span></div>
+              <div class="report-row"><span>Toplam artık değer</span><span id="mr-r-toplam" class="val">—</span></div>
+              <div class="report-row"><span>Az olan eşin katılma alacağı (1/2)</span><span id="mr-r-katilma" class="val">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MİRAS PAYI -->
+      <div class="tab-content" id="6206-miras">
+        <div class="alert-info">Yasal miras payları TMK m.495–501'e göre belirlenir. Sağ kalan eş ve altsoy birlikte mirasçı olduğunda eş 1/4 pay alır. Vasiyetle saklı pay ihlal edilemez.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">📜</span>Miras payı hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Miras bırakanın net tereke değeri (₺)</label><input type="number" id="ms2-tereke" value="3000000"></div>
+            <div class="form-group"><label>Sağ kalan eş var mı?</label><select id="ms2-es"><option value="evet">Evet</option><option value="hayir">Hayır</option></select></div>
+            <div class="form-group"><label>Çocuk sayısı</label><input type="number" id="ms2-cocuk" value="2" min="0"></div>
+            <div class="form-group"><label>Torun sayısı (vefat eden çocuk varsa)</label><input type="number" id="ms2-torun" value="0" min="0"></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaMirasPayi()">Miras Paylarını Hesapla</button>
+        </div>
+        <div id="miras-results" style="display:none">
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">📊</span>Pay dağılımı</div>
+            <div class="report-section" id="miras-tablo"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TENKİS -->
+      <div class="tab-content" id="6206-tenkis">
+        <div class="alert-info">Saklı pay: Altsoy için miras payının 1/2'si, ana-baba için 1/4'ü, kardeşler için 1/8'idir (TMK m.506). Tasarruf oranını aşan bağışlamalar tenkise tabidir.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">⚖️</span>Tenkis hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Net tereke (₺)</label><input type="number" id="tk-tereke" value="2000000"></div>
+            <div class="form-group"><label>Vasiyetle/bağışla devredilen değer (₺)</label><input type="number" id="tk-bagis" value="1500000"></div>
+            <div class="form-group"><label>Saklı pay oranı</label><select id="tk-sakli">
+              <option value="0.5">1/2 — Altsoy</option>
+              <option value="0.25">1/4 — Ana-baba</option>
+              <option value="0.125">1/8 — Kardeşler</option>
+            </select></div>
+            <div class="form-group"><label>Saklı pay sahibi sayısı</label><input type="number" id="tk-kisi" value="2" min="1"></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaTenkis()">Tenkis Tutarını Hesapla</button>
+        </div>
+        <div id="tenkis-results" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Tasarruf oranı</div><div class="result-val" id="tk-oran">—</div></div>
+            <div class="result-card"><div class="result-label">Saklı pay toplamı</div><div class="result-val" id="tk-sakli-tutar">—</div></div>
+            <div class="result-card"><div class="result-label">Tenkis tutarı</div><div class="result-val blue" id="tk-toplam">—</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">📋</span>Tenkis hesabı</div>
+            <div class="report-section">
+              <div class="report-row"><span>Net tereke</span><span id="tk-r-tereke" class="val">—</span></div>
+              <div class="report-row"><span>Tasarruf nisabı (1 - saklı pay)</span><span id="tk-r-nisap" class="val">—</span></div>
+              <div class="report-row"><span>Azami tasarruf tutarı</span><span id="tk-r-max" class="val">—</span></div>
+              <div class="report-row"><span>Gerçekleşen tasarruf</span><span id="tk-r-bagis" class="val">—</span></div>
+              <div class="report-row"><span>Tenkise tabi tutar</span><span id="tk-r-tenkis" class="val">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MEVZUAT 6206 -->
+      <div class="tab-content" id="6206-mevzuat">
+        <div class="mevzuat-item"><div class="mevzuat-title">4721 sayılı TMK — Madde 175 (Yoksulluk nafakası)</div><div class="mevzuat-src">Boşanma yüzünden yoksulluğa düşecek eşe diğer eşin ödeyeceği nafaka; koşullar ve süre</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">4721 sayılı TMK — Madde 182 (İştirak nafakası)</div><div class="mevzuat-src">Velayeti almayan ebeveynin çocuk için ödeyeceği iştirak nafakası</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">4721 sayılı TMK — Madde 231 (Katılma alacağı)</div><div class="mevzuat-src">Edinilmiş mallara katılma rejiminde artık değerin eşit paylaşımı</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">4721 sayılı TMK — Madde 495–501 (Yasal miras)</div><div class="mevzuat-src">Zümre sistemi ve sağ kalan eşin miras payı; altsoy, ana-baba ve kardeş zümreleri</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">4721 sayılı TMK — Madde 506 (Saklı pay)</div><div class="mevzuat-src">Altsoy 1/2, ana-baba 1/4, kardeşler 1/8 saklı pay; tenkis davası koşulları</div></div>
+      </div>
+
+    </div>
+  </div>
+</div><!-- /panel-6206 -->
+
+
+<!-- ─────────────── 62.07 KOOPERATİFLER ─────────────── -->
+<div class="module-panel" id="panel-6207">
+  <div class="topbar">
+    <div class="breadcrumb">Platform › <span>62.07 — Kooperatifler Mevzuatından Kaynaklı Nitelikli Hesaplamalar</span></div>
+  </div>
+  <div class="content">
+    <div class="module-hero">
+      <div class="module-title"><div class="module-title-icon">🏢</div>62.07 Kooperatif Hesaplamaları</div>
+      <div class="module-desc">1163 sayılı Kooperatifler Kanunu kapsamında ortaklık payı, iade alacağı, kooperatif tazminatı ve aidat borcu hesaplamaları.</div>
+    </div>
+    <div class="tabs" id="tabs-6207">
+      <button class="tab active" onclick="switchTab('6207','pay',this)">Ortaklık Payı İadesi</button>
+      <button class="tab" onclick="switchTab('6207','aidat',this)">Aidat Borcu</button>
+      <button class="tab" onclick="switchTab('6207','zarar',this)">Zarar Tazminatı</button>
+      <button class="tab" onclick="switchTab('6207','mevzuat',this)">Mevzuat</button>
+    </div>
+    <div class="tab-body">
+
+      <!-- ORTAKLIK PAYI İADESİ -->
+      <div class="tab-content active" id="6207-pay">
+        <div class="alert-info">Kooperatiften ayrılan veya çıkarılan ortağa; ödediği ortaklık payı, son bilançoya göre hesaplanan gerçek değeri üzerinden iade edilir (Koop. K. m.18).</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">💳</span>Ortaklık payı iade hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Ödenen toplam ortaklık payı (₺)</label><input type="number" id="kp-odenen" value="150000"></div>
+            <div class="form-group"><label>Kooperatif son bilanço net varlığı (₺)</label><input type="number" id="kp-varlik" value="5000000"></div>
+            <div class="form-group"><label>Toplam ortak sayısı</label><input type="number" id="kp-ortak" value="100"></div>
+            <div class="form-group"><label>Ortağın pay adedi</label><input type="number" id="kp-pay" value="1"></div>
+            <div class="form-group"><label>Ayrılma tarihi</label><input type="date" id="kp-tarih" value="2024-01-01"></div>
+            <div class="form-group"><label>Yasal faiz oranı (%/yıl)</label><input type="number" id="kp-faiz" value="9" step="0.1"></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaKoopPay()">İade Tutarını Hesapla</button>
+        </div>
+        <div id="kooppay-results" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Pay başı gerçek değer</div><div class="result-val" id="kp-gercek">—</div></div>
+            <div class="result-card"><div class="result-label">Ödenen pay değeri</div><div class="result-val" id="kp-r-odenen">—</div></div>
+            <div class="result-card"><div class="result-label">İade tutarı</div><div class="result-val blue" id="kp-iade">—</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">📋</span>Hesap detayı</div>
+            <div class="report-section">
+              <div class="report-row"><span>Bilanço net varlık</span><span id="kp-r-varlik" class="val">—</span></div>
+              <div class="report-row"><span>Pay başı değer (varlık / ortak)</span><span id="kp-r-pay" class="val">—</span></div>
+              <div class="report-row"><span>Ortağın toplam pay değeri</span><span id="kp-r-toplam-pay" class="val">—</span></div>
+              <div class="report-row"><span>İade edilecek tutar</span><span id="kp-r-iade" class="val">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AİDAT BORCU -->
+      <div class="tab-content" id="6207-aidat">
+        <div class="alert-info">Kooperatif aidatları ana sözleşme ve genel kurul kararıyla belirlenir. Ödenmeyen aidatlara gecikme faizi uygulanır.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">📅</span>Aidat borcu hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Aylık aidat tutarı (₺)</label><input type="number" id="ka-aylik" value="2000"></div>
+            <div class="form-group"><label>Ödenmemiş dönem (ay)</label><input type="number" id="ka-ay" value="18"></div>
+            <div class="form-group"><label>Gecikme faizi (%/yıl)</label><input type="number" id="ka-faiz" value="12" step="0.1"></div>
+            <div class="form-group"><label>Ortalama gecikme süresi (ay)</label><input type="number" id="ka-gecikme" value="9"></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaKoopAidat()">Aidat Borcunu Hesapla</button>
+        </div>
+        <div id="koopaidat-results" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Aidat anapara</div><div class="result-val" id="ka-anapara">—</div></div>
+            <div class="result-card"><div class="result-label">Gecikme faizi</div><div class="result-val" id="ka-gecikme-tutar">—</div></div>
+            <div class="result-card"><div class="result-label">Toplam borç</div><div class="result-val blue" id="ka-toplam">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ZARAR TAZMİNATI -->
+      <div class="tab-content" id="6207-zarar">
+        <div class="alert-info">Kooperatif yöneticilerinin görevi kötüye kullanması sonucu doğan zarardan, yönetim ve denetim kurulu üyeleri müteselsilen sorumludur (Koop. K. m.62).</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">⚖️</span>Yönetici sorumluluğu tazminatı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Kooperatifin uğradığı zarar (₺)</label><input type="number" id="kz-zarar" value="1000000"></div>
+            <div class="form-group"><label>Sorumlu yönetici sayısı</label><input type="number" id="kz-kisi" value="3"></div>
+            <div class="form-group"><label>Zararın oluştuğu tarih</label><input type="date" id="kz-tarih" value="2022-06-01"></div>
+            <div class="form-group"><label>Dava tarihi</label><input type="date" id="kz-dava" value="2024-06-01"></div>
+            <div class="form-group"><label>Yasal faiz oranı (%/yıl)</label><input type="number" id="kz-faiz" value="9" step="0.1"></div>
+            <div class="form-group"><label>Sorumluluk paylaşımı</label><select id="kz-pay"><option value="muteselsil">Müteselsil (tam)</option><option value="esit">Eşit pay</option></select></div>
+          </div>
+          <button class="calc-btn" onclick="hesaplaKoopZarar()">Tazminat Tutarını Hesapla</button>
+        </div>
+        <div id="koopzarar-results" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Anapara zarar</div><div class="result-val" id="kz-anapara">—</div></div>
+            <div class="result-card"><div class="result-label">Faiz alacağı</div><div class="result-val" id="kz-faiz-tutar">—</div></div>
+            <div class="result-card"><div class="result-label">Toplam tazminat</div><div class="result-val blue" id="kz-toplam">—</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">📋</span>Kişi başı sorumluluk</div>
+            <div class="report-section">
+              <div class="report-row"><span>Toplam tazminat</span><span id="kz-r-toplam" class="val">—</span></div>
+              <div class="report-row"><span>Sorumluluk türü</span><span id="kz-r-tur" class="val">—</span></div>
+              <div class="report-row"><span>Kişi başı tutar</span><span id="kz-r-kisi" class="val">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MEVZUAT 6207 -->
+      <div class="tab-content" id="6207-mevzuat">
+        <div class="mevzuat-item"><div class="mevzuat-title">1163 sayılı Kooperatifler Kanunu — Madde 18 (Ortaklık payı iadesi)</div><div class="mevzuat-src">Ayrılan ortağın payının son bilançoya göre hesaplanarak iadesi; ödeme süresi</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">1163 sayılı Kooperatifler Kanunu — Madde 23 (Aidat)</div><div class="mevzuat-src">Ortakların ödeme yükümlülükleri; aidat miktarının ana sözleşme ve genel kurulca belirlenmesi</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">1163 sayılı Kooperatifler Kanunu — Madde 62 (Sorumluluk)</div><div class="mevzuat-src">Yönetim ve denetim kurulu üyelerinin görevden doğan zararlardan müteselsil sorumluluğu</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">Yargıtay 23. HD — Kooperatif pay iadesi içtihadı</div><div class="mevzuat-src">İadenin gerçek değer üzerinden yapılacağı; nominal değerin esas alınamayacağı</div></div>
+      </div>
+
+    </div>
+  </div>
+</div><!-- /panel-6207 -->
+
+
+
+
+
+
+
+<!-- ─────────────── 62.08 KAT MÜLKİYETİ ─────────────── -->
+<div class="module-panel" id="panel-6208">
+  <div class="topbar">
+    <div class="breadcrumb">Platform › <span>62.08 — Kat Mülkiyeti Mevzuatından Kaynaklı Nitelikli Hesaplamalar</span></div>
+  </div>
+  <div class="content">
+    <div class="module-hero">
+      <div class="module-title"><div class="module-title-icon">🏗️</div>62.08 Kat Mülkiyeti Hesaplamaları</div>
+      <div class="module-desc">634 sayılı Kat Mülkiyeti Kanunu kapsamında ortak gider alacağı, gecikme tazminatı ve arsa payı hesaplamaları.</div>
+    </div>
+    <div class="tabs" id="tabs-6208">
+      <button class="tab active" onclick="switchTab('6208','og',this)">Ortak Gider Alacağı</button>
+      <button class="tab" onclick="switchTab('6208','gt',this)">Gecikme Tazminatı</button>
+      <button class="tab" onclick="switchTab('6208','ap',this)">Arsa Payı</button>
+      <button class="tab" onclick="switchTab('6208','mv',this)">Mevzuat</button>
+    </div>
+    <div class="tab-body">
+
+      <div class="tab-content active" id="6208-og">
+        <div class="alert-info">Kat malikleri ortak giderlere arsa payları oranında katılmak zorundadır. Gecikme tazminatı aylık %5 olarak uygulanır (KMK m.20).</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">🏢</span>Ortak gider borcu</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Aylık aidat (₺)</label><input type="number" id="og1" value="3000"></div>
+            <div class="form-group"><label>Ödenmemiş dönem (ay)</label><input type="number" id="og2" value="12"></div>
+            <div class="form-group"><label>Aylık gecikme tazminatı (%)</label><input type="number" id="og3" value="5" step="0.1"></div>
+            <div class="form-group"><label>Ortalama gecikme (ay)</label><input type="number" id="og4" value="6"></div>
+          </div>
+          <button class="calc-btn" onclick="fn6208og()">Hesapla</button>
+        </div>
+        <div id="res6208og" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Aidat anapara</div><div class="result-val" id="og_a">—</div></div>
+            <div class="result-card"><div class="result-label">Gecikme tazminatı</div><div class="result-val" id="og_g">—</div></div>
+            <div class="result-card"><div class="result-label">Toplam alacak</div><div class="result-val blue" id="og_t">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="6208-gt">
+        <div class="alert-info">KMK m.20/2 uyarınca gecikme tazminatı aylık %5 basit olarak hesaplanır. Yönetim planında farklı oran belirlenebilir.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">⏱️</span>Gecikme tazminatı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Borç anapara (₺)</label><input type="number" id="gt1" value="50000"></div>
+            <div class="form-group"><label>Vade tarihi</label><input type="date" id="gt2" value="2023-01-01"></div>
+            <div class="form-group"><label>Hesap tarihi</label><input type="date" id="gt3" value="2024-06-01"></div>
+            <div class="form-group"><label>Aylık tazminat oranı (%)</label><input type="number" id="gt4" value="5" step="0.1"></div>
+          </div>
+          <button class="calc-btn" onclick="fn6208gt()">Hesapla</button>
+        </div>
+        <div id="res6208gt" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Gecikme süresi</div><div class="result-val" id="gt_s">—</div></div>
+            <div class="result-card"><div class="result-label">Tazminat</div><div class="result-val" id="gt_t">—</div></div>
+            <div class="result-card"><div class="result-label">Toplam borç</div><div class="result-val blue" id="gt_to">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="6208-ap">
+        <div class="alert-info">Arsa payı bağımsız bölüm değeriyle orantılı belirlenir. Hatalı belirlenen arsa payı mahkemece düzeltilebilir (KMK m.3).</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">📐</span>Arsa payı ve gider payı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Bağımsız bölüm değeri (₺)</label><input type="number" id="ap1" value="3000000"></div>
+            <div class="form-group"><label>Binadaki tüm bölümler toplam değeri (₺)</label><input type="number" id="ap2" value="20000000"></div>
+            <div class="form-group"><label>Aylık toplam ortak gider (₺)</label><input type="number" id="ap3" value="50000"></div>
+            <div class="form-group"><label>Hesap dönemi (ay)</label><input type="number" id="ap4" value="12"></div>
+          </div>
+          <button class="calc-btn" onclick="fn6208ap()">Hesapla</button>
+        </div>
+        <div id="res6208ap" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Arsa payı oranı</div><div class="result-val" id="ap_o">—</div></div>
+            <div class="result-card"><div class="result-label">Aylık gider payı</div><div class="result-val" id="ap_a">—</div></div>
+            <div class="result-card"><div class="result-label">Dönem gider toplamı</div><div class="result-val blue" id="ap_t">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="6208-mv">
+        <div class="mevzuat-item"><div class="mevzuat-title">634 sayılı KMK — Madde 20</div><div class="mevzuat-src">Kat maliklerinin ortak giderlere katılım yükümlülüğü; aylık %5 gecikme tazminatı</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">634 sayılı KMK — Madde 3</div><div class="mevzuat-src">Arsa payının bağımsız bölüm değerleriyle orantılı belirlenmesi zorunluluğu</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">Yargıtay 18. HD — Gecikme tazminatı</div><div class="mevzuat-src">Aylık %5 gecikme tazminatının basit olarak uygulanacağı; bileşik hesap yapılamaz</div></div>
+      </div>
+
+    </div>
+  </div>
+</div><!-- /panel-6208 -->
+
+
+<!-- ─────────────── 62.09 TÜKETİCİ ─────────────── -->
+<div class="module-panel" id="panel-6209">
+  <div class="topbar">
+    <div class="breadcrumb">Platform › <span>62.09 — Tüketici Mevzuatından Kaynaklı Nitelikli Hesaplamalar</span></div>
+  </div>
+  <div class="content">
+    <div class="module-hero">
+      <div class="module-title"><div class="module-title-icon">🛒</div>62.09 Tüketici Hesaplamaları</div>
+      <div class="module-desc">6502 sayılı Tüketicinin Korunması Hakkında Kanun kapsamında ayıplı mal tazminatı, konut kredisi ve cayma bedeli hesaplamaları.</div>
+    </div>
+    <div class="tabs" id="tabs-6209">
+      <button class="tab active" onclick="switchTab('6209','ay',this)">Ayıplı Mal/Hizmet</button>
+      <button class="tab" onclick="switchTab('6209','kk',this)">Konut Kredisi</button>
+      <button class="tab" onclick="switchTab('6209','cy',this)">Cayma / İptal</button>
+      <button class="tab" onclick="switchTab('6209','mv',this)">Mevzuat</button>
+    </div>
+    <div class="tab-body">
+
+      <div class="tab-content active" id="6209-ay">
+        <div class="alert-info">Ayıplı mal/hizmette tüketici; orantılı indirim, onarım, değişim veya iade haklarından birini seçebilir (TKHK m.11).</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">🔧</span>Ayıplı mal tazminatı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Satış bedeli (₺)</label><input type="number" id="ay1" value="150000"></div>
+            <div class="form-group"><label>Talep türü</label><select id="ay2"><option value="orantili">Orantılı bedel indirimi</option><option value="iade">Tam bedel iadesi</option><option value="onarim">Onarım masrafı</option></select></div>
+            <div class="form-group"><label>Ayıp oranı (%)</label><input type="number" id="ay3" value="30" min="1" max="100"></div>
+            <div class="form-group"><label>Onarım masrafı (₺)</label><input type="number" id="ay4" value="0"></div>
+            <div class="form-group"><label>Satış tarihi</label><input type="date" id="ay5" value="2023-01-01"></div>
+            <div class="form-group"><label>Dava tarihi</label><input type="date" id="ay6" value="2024-06-01"></div>
+            <div class="form-group full"><label>Yasal faiz (%/yıl)</label><input type="number" id="ay7" value="9" step="0.1"></div>
+          </div>
+          <button class="calc-btn" onclick="fn6209ay()">Hesapla</button>
+        </div>
+        <div id="res6209ay" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Tazminat anapara</div><div class="result-val" id="ay_a">—</div></div>
+            <div class="result-card"><div class="result-label">Faiz</div><div class="result-val" id="ay_f">—</div></div>
+            <div class="result-card"><div class="result-label">Toplam alacak</div><div class="result-val blue" id="ay_t">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="6209-kk">
+        <div class="alert-info">Konut kredisinde erken kapamada kalan anapara üzerinden %2 erken ödeme ücreti uygulanabilir (TKHK m.37). Değişken faizli kredilerde bu ücret alınamaz.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">🏠</span>Konut kredisi ve erken ödeme</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Kredi anapara (₺)</label><input type="number" id="kk1" value="2000000"></div>
+            <div class="form-group"><label>Yıllık faiz oranı (%)</label><input type="number" id="kk2" value="36" step="0.1"></div>
+            <div class="form-group"><label>Vade (ay)</label><input type="number" id="kk3" value="120"></div>
+            <div class="form-group"><label>Erken ödeme yapılan ay</label><input type="number" id="kk4" value="24"></div>
+          </div>
+          <button class="calc-btn" onclick="fn6209kk()">Hesapla</button>
+        </div>
+        <div id="res6209kk" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Aylık taksit</div><div class="result-val" id="kk_tk">—</div></div>
+            <div class="result-card"><div class="result-label">Kalan anapara</div><div class="result-val" id="kk_ka">—</div></div>
+            <div class="result-card"><div class="result-label">Erken ödeme ücreti (%2)</div><div class="result-val blue" id="kk_eu">—</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">📋</span>Kredi özeti</div>
+            <div class="report-section">
+              <div class="report-row"><span>Aylık taksit</span><span id="kk_r1" class="val">—</span></div>
+              <div class="report-row"><span>Toplam geri ödeme</span><span id="kk_r2" class="val">—</span></div>
+              <div class="report-row"><span>Toplam faiz yükü</span><span id="kk_r3" class="val">—</span></div>
+              <div class="report-row"><span>Kalan anapara</span><span id="kk_r4" class="val">—</span></div>
+              <div class="report-row"><span>Erken ödeme ücreti</span><span id="kk_r5" class="val">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="6209-cy">
+        <div class="alert-info">Mesafeli sözleşmelerde 14 gün cayma hakkı bulunur. Abonelik sözleşmelerinde erken fesih halinde kalan dönem üzerinden ceza hesaplanır (TKHK m.48).</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">↩️</span>Erken fesih ve iade</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Toplam sözleşme bedeli (₺)</label><input type="number" id="cy1" value="24000"></div>
+            <div class="form-group"><label>Sözleşme süresi (ay)</label><input type="number" id="cy2" value="24"></div>
+            <div class="form-group"><label>Kullanılan süre (ay)</label><input type="number" id="cy3" value="8"></div>
+            <div class="form-group"><label>Erken fesih cezası oranı (%)</label><input type="number" id="cy4" value="10" step="0.5"></div>
+          </div>
+          <button class="calc-btn" onclick="fn6209cy()">Hesapla</button>
+        </div>
+        <div id="res6209cy" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Kullanılan hizmet bedeli</div><div class="result-val" id="cy_k">—</div></div>
+            <div class="result-card"><div class="result-label">Erken fesih cezası</div><div class="result-val" id="cy_c">—</div></div>
+            <div class="result-card"><div class="result-label">İade edilecek tutar</div><div class="result-val blue" id="cy_i">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="6209-mv">
+        <div class="mevzuat-item"><div class="mevzuat-title">6502 sayılı TKHK — Madde 11 (Ayıplı mal)</div><div class="mevzuat-src">Tüketicinin ayıplı mala karşı seçimlik hakları: onarım, değişim, bedel indirimi, iade</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">6502 sayılı TKHK — Madde 37 (Konut finansmanı)</div><div class="mevzuat-src">Erken ödeme ücreti: sabit faizli kredilerde kalan anapara üzerinden en fazla %2</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">6502 sayılı TKHK — Madde 48 (Mesafeli sözleşme)</div><div class="mevzuat-src">14 günlük cayma hakkı; herhangi bir gerekçe gösterilmeksizin kullanılabilir</div></div>
+      </div>
+
+    </div>
+  </div>
+</div><!-- /panel-6209 -->
+
+
+<!-- ─────────────── 62.10 BORÇLAR ─────────────── -->
+<div class="module-panel" id="panel-6210">
+  <div class="topbar">
+    <div class="breadcrumb">Platform › <span>62.10 — Borçlar Mevzuatından Kaynaklı Nitelikli Hesaplamalar</span></div>
+  </div>
+  <div class="content">
+    <div class="module-hero">
+      <div class="module-title"><div class="module-title-icon">📝</div>62.10 Borçlar Hukuku Hesaplamaları</div>
+      <div class="module-desc">6098 sayılı Türk Borçlar Kanunu kapsamında haksız fiil tazminatı, kira alacağı, cezai şart ve sebepsiz zenginleşme hesaplamaları.</div>
+    </div>
+    <div class="tabs" id="tabs-6210">
+      <button class="tab active" onclick="switchTab('6210','hf',this)">Haksız Fiil</button>
+      <button class="tab" onclick="switchTab('6210','kr',this)">Kira Alacağı</button>
+      <button class="tab" onclick="switchTab('6210','cs',this)">Cezai Şart</button>
+      <button class="tab" onclick="switchTab('6210','sz',this)">Sebepsiz Zenginleşme</button>
+      <button class="tab" onclick="switchTab('6210','mv',this)">Mevzuat</button>
+    </div>
+    <div class="tab-body">
+
+      <div class="tab-content active" id="6210-hf">
+        <div class="alert-info">Haksız fiil tazminatı maddi (fiili zarar + yoksun kalınan kazanç) ve manevi zarardan oluşur. Kusur oranı tazminatı doğrudan etkiler (TBK m.49).</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">⚖️</span>Haksız fiil tazminatı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Fiili zarar (₺)</label><input type="number" id="hf1" value="200000"></div>
+            <div class="form-group"><label>Yoksun kalınan kazanç (₺)</label><input type="number" id="hf2" value="100000"></div>
+            <div class="form-group"><label>Manevi tazminat talebi (₺)</label><input type="number" id="hf3" value="50000"></div>
+            <div class="form-group"><label>Davalı kusur oranı (%)</label><input type="number" id="hf4" value="75" min="0" max="100"></div>
+            <div class="form-group"><label>Zarar tarihi</label><input type="date" id="hf5" value="2022-06-01"></div>
+            <div class="form-group"><label>Dava tarihi</label><input type="date" id="hf6" value="2024-06-01"></div>
+            <div class="form-group full"><label>Yasal faiz (%/yıl)</label><input type="number" id="hf7" value="9" step="0.1"></div>
+          </div>
+          <button class="calc-btn" onclick="fn6210hf()">Hesapla</button>
+        </div>
+        <div id="res6210hf" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Maddi tazminat</div><div class="result-val" id="hf_m">—</div></div>
+            <div class="result-card"><div class="result-label">Faiz dahil maddi</div><div class="result-val" id="hf_mf">—</div></div>
+            <div class="result-card"><div class="result-label">Toplam tazminat</div><div class="result-val blue" id="hf_t">—</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">📋</span>Tazminat döküm</div>
+            <div class="report-section">
+              <div class="report-row"><span>Fiili zarar</span><span id="hf_r1" class="val">—</span></div>
+              <div class="report-row"><span>Yoksun kalınan kazanç</span><span id="hf_r2" class="val">—</span></div>
+              <div class="report-row"><span>Kusur oranı uygulandı</span><span id="hf_r3" class="val">—</span></div>
+              <div class="report-row"><span>Kusurlu maddi tazminat</span><span id="hf_r4" class="val">—</span></div>
+              <div class="report-row"><span>Faiz alacağı</span><span id="hf_r5" class="val">—</span></div>
+              <div class="report-row"><span>Manevi tazminat</span><span id="hf_r6" class="val">—</span></div>
+              <div class="report-row"><span>Genel toplam</span><span id="hf_r7" class="val">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="6210-kr">
+        <div class="alert-info">Konut kiralarında yıllık artış TÜFE 12 aylık ortalamasını geçemez (TBK m.344). Ödenmemiş kira alacaklarına yasal faiz uygulanır.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">🏠</span>Kira alacağı hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Aylık kira (₺)</label><input type="number" id="kr1" value="15000"></div>
+            <div class="form-group"><label>Ödenmemiş dönem (ay)</label><input type="number" id="kr2" value="6"></div>
+            <div class="form-group"><label>Yıllık artış oranı — TÜFE (%)</label><input type="number" id="kr3" value="48" step="0.1"></div>
+            <div class="form-group"><label>Geçen yıl sayısı</label><input type="number" id="kr4" value="1"></div>
+            <div class="form-group"><label>Gecikme faizi (%/yıl)</label><input type="number" id="kr5" value="9" step="0.1"></div>
+            <div class="form-group"><label>Ort. gecikme süresi (ay)</label><input type="number" id="kr6" value="3"></div>
+          </div>
+          <button class="calc-btn" onclick="fn6210kr()">Hesapla</button>
+        </div>
+        <div id="res6210kr" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Güncel aylık kira</div><div class="result-val" id="kr_g">—</div></div>
+            <div class="result-card"><div class="result-label">Kira anapara</div><div class="result-val" id="kr_a">—</div></div>
+            <div class="result-card"><div class="result-label">Faiz dahil toplam</div><div class="result-val blue" id="kr_t">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="6210-cs">
+        <div class="alert-info">Hakim aşırı cezai şartı indirebilir; borca aykırılıkla orantılı olmalıdır (TBK m.182). İndirim oranı %0 bırakılırsa hesaplamaya dahil edilmez.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">📄</span>Cezai şart hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Sözleşme bedeli (₺)</label><input type="number" id="cs1" value="1000000"></div>
+            <div class="form-group"><label>Cezai şart oranı (%)</label><input type="number" id="cs2" value="20" step="0.5"></div>
+            <div class="form-group"><label>Aykırılık oranı (%)</label><input type="number" id="cs3" value="100" min="1" max="100"></div>
+            <div class="form-group"><label>Hakim indirimi (%)</label><input type="number" id="cs4" value="0" min="0" max="80"></div>
+          </div>
+          <button class="calc-btn" onclick="fn6210cs()">Hesapla</button>
+        </div>
+        <div id="res6210cs" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Brüt cezai şart</div><div class="result-val" id="cs_b">—</div></div>
+            <div class="result-card"><div class="result-label">Hakim indirimi</div><div class="result-val" id="cs_i">—</div></div>
+            <div class="result-card"><div class="result-label">Net cezai şart</div><div class="result-val blue" id="cs_n">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="6210-sz">
+        <div class="alert-info">Sebepsiz zenginleşmede iade; zenginleşmenin mevcut miktarıyla sınırlıdır. Kötü niyetlide faiz zenginleşme tarihinden, iyiniyetlide dava tarihinden işler (TBK m.79).</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">💸</span>Sebepsiz zenginleşme iadesi</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Zenginleşme miktarı (₺)</label><input type="number" id="sz1" value="500000"></div>
+            <div class="form-group"><label>Zenginleşme tarihi</label><input type="date" id="sz2" value="2022-01-01"></div>
+            <div class="form-group"><label>Dava tarihi</label><input type="date" id="sz3" value="2024-06-01"></div>
+            <div class="form-group"><label>Niyet</label><select id="sz4"><option value="kotu">Kötü niyetli (zenginleşme tarihinden faiz)</option><option value="iyi">İyi niyetli (dava tarihinden faiz)</option></select></div>
+            <div class="form-group full"><label>Yasal faiz (%/yıl)</label><input type="number" id="sz5" value="9" step="0.1"></div>
+          </div>
+          <button class="calc-btn" onclick="fn6210sz()">Hesapla</button>
+        </div>
+        <div id="res6210sz" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Anapara</div><div class="result-val" id="sz_a">—</div></div>
+            <div class="result-card"><div class="result-label">Faiz alacağı</div><div class="result-val" id="sz_f">—</div></div>
+            <div class="result-card"><div class="result-label">Toplam iade</div><div class="result-val blue" id="sz_t">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="6210-mv">
+        <div class="mevzuat-item"><div class="mevzuat-title">6098 sayılı TBK — Madde 49 (Haksız fiil)</div><div class="mevzuat-src">Kusurlu ve hukuka aykırı fiille başkasına zarar veren kişinin zararı giderme yükümlülüğü</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">6098 sayılı TBK — Madde 79 (Sebepsiz zenginleşme)</div><div class="mevzuat-src">Haklı sebep olmaksızın zenginleşenin iade yükümlülüğü; iyiniyet/kötüniyet ayrımı</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">6098 sayılı TBK — Madde 182 (Cezai şart)</div><div class="mevzuat-src">Cezai şartın ifadan bağımsızlığı; hakimin aşırı miktarı indirebileceği</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">6098 sayılı TBK — Madde 344 (Kira artışı)</div><div class="mevzuat-src">Konut kiralarında yıllık artış oranının TÜFE 12 aylık ortalamasını geçemeyeceği</div></div>
+      </div>
+
+    </div>
+  </div>
+</div><!-- /panel-6210 -->
+
+
+<!-- ─────────────── 62.11 TİCARET ─────────────── -->
+<div class="module-panel" id="panel-6211">
+  <div class="topbar">
+    <div class="breadcrumb">Platform › <span>62.11 — Ticaret Mevzuatından Kaynaklı Nitelikli Hesaplamalar</span></div>
+  </div>
+  <div class="content">
+    <div class="module-hero">
+      <div class="module-title"><div class="module-title-icon">🏪</div>62.11 Ticaret Hukuku Hesaplamaları</div>
+      <div class="module-desc">6102 sayılı Türk Ticaret Kanunu kapsamında ticari faiz, kâr payı alacağı, şirket tasfiye payı ve kambiyo senedi hesaplamaları.</div>
+    </div>
+    <div class="tabs" id="tabs-6211">
+      <button class="tab active" onclick="switchTab('6211','tf',this)">Ticari Faiz</button>
+      <button class="tab" onclick="switchTab('6211','kar',this)">Kâr Payı Alacağı</button>
+      <button class="tab" onclick="switchTab('6211','tas',this)">Tasfiye Payı</button>
+      <button class="tab" onclick="switchTab('6211','kam',this)">Kambiyo Senedi</button>
+      <button class="tab" onclick="switchTab('6211','mv',this)">Mevzuat</button>
+    </div>
+    <div class="tab-body">
+
+      <div class="tab-content active" id="6211-tf">
+        <div class="alert-info">Ticari işlerde temerrüt faizi; taraflarca kararlaştırılmamışsa Merkez Bankası'nın kısa vadeli avans faiz oranı uygulanır (TTK m.8, 3095 s.K. m.2).</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">💹</span>Ticari alacak faiz hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Alacak anapara (₺)</label><input type="number" id="tf1" value="500000"></div>
+            <div class="form-group"><label>Faiz başlangıç tarihi</label><input type="date" id="tf2" value="2022-01-01"></div>
+            <div class="form-group"><label>Faiz bitiş tarihi</label><input type="date" id="tf3" value="2024-06-01"></div>
+            <div class="form-group"><label>Yıllık faiz oranı (%)</label><input type="number" id="tf4" value="45" step="0.1"></div>
+            <div class="form-group"><label>Hesaplama yöntemi</label><select id="tf5"><option value="basit">Basit faiz</option><option value="bilesik">Bileşik faiz</option></select></div>
+            <div class="form-group"><label>KDV oranı (%)</label><input type="number" id="tf6" value="0" step="1"></div>
+          </div>
+          <button class="calc-btn" onclick="fn6211tf()">Faizi Hesapla</button>
+        </div>
+        <div id="res6211tf" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Süre</div><div class="result-val" id="tf_s">—</div></div>
+            <div class="result-card"><div class="result-label">Faiz tutarı</div><div class="result-val" id="tf_f">—</div></div>
+            <div class="result-card"><div class="result-label">Anapara + Faiz</div><div class="result-val blue" id="tf_t">—</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">📋</span>Hesap detayı</div>
+            <div class="report-section">
+              <div class="report-row"><span>Anapara</span><span id="tf_r1" class="val">—</span></div>
+              <div class="report-row"><span>Faiz oranı / yöntem</span><span id="tf_r2" class="val">—</span></div>
+              <div class="report-row"><span>Faiz süresi</span><span id="tf_r3" class="val">—</span></div>
+              <div class="report-row"><span>Hesaplanan faiz</span><span id="tf_r4" class="val">—</span></div>
+              <div class="report-row"><span>KDV</span><span id="tf_r5" class="val">—</span></div>
+              <div class="report-row"><span>Toplam alacak</span><span id="tf_r6" class="val">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="6211-kar">
+        <div class="alert-info">Ortakların kâr payı alacağı; genel kurulun kâr dağıtım kararı ile doğar. Ödenmemiş kâr payına temerrüt faizi uygulanır (TTK m.507).</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">📈</span>Kâr payı alacağı hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Şirket net kârı (₺)</label><input type="number" id="kar1" value="5000000"></div>
+            <div class="form-group"><label>Dağıtılacak kâr oranı (%)</label><input type="number" id="kar2" value="50" step="1"></div>
+            <div class="form-group"><label>Ortağın pay oranı (%)</label><input type="number" id="kar3" value="30" step="0.1"></div>
+            <div class="form-group"><label>Genel kurul tarihi</label><input type="date" id="kar4" value="2023-04-01"></div>
+            <div class="form-group"><label>Hesap tarihi</label><input type="date" id="kar5" value="2024-06-01"></div>
+            <div class="form-group"><label>Gecikme faizi (%/yıl)</label><input type="number" id="kar6" value="45" step="0.1"></div>
+          </div>
+          <button class="calc-btn" onclick="fn6211kar()">Kâr Payını Hesapla</button>
+        </div>
+        <div id="res6211kar" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Dağıtılacak kâr</div><div class="result-val" id="kar_d">—</div></div>
+            <div class="result-card"><div class="result-label">Ortak kâr payı</div><div class="result-val" id="kar_p">—</div></div>
+            <div class="result-card"><div class="result-label">Faiz dahil toplam</div><div class="result-val blue" id="kar_t">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="6211-tas">
+        <div class="alert-info">Şirket tasfiyesinde; önce alacaklılar ödenir, kalan aktif ortaklara pay oranında dağıtılır (TTK m.543). Tasfiye payı hesabında son bilanço esas alınır.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">🏢</span>Tasfiye payı hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Tasfiye sonu net aktif (₺)</label><input type="number" id="tas1" value="10000000"></div>
+            <div class="form-group"><label>Toplam borç (₺)</label><input type="number" id="tas2" value="2000000"></div>
+            <div class="form-group"><label>Ortağın sermaye payı (%)</label><input type="number" id="tas3" value="25" step="0.1"></div>
+            <div class="form-group"><label>Ödenen sermaye (₺)</label><input type="number" id="tas4" value="500000"></div>
+          </div>
+          <button class="calc-btn" onclick="fn6211tas()">Tasfiye Payını Hesapla</button>
+        </div>
+        <div id="res6211tas" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Dağıtılabilir aktif</div><div class="result-val" id="tas_d">—</div></div>
+            <div class="result-card"><div class="result-label">Ortağın tasfiye payı</div><div class="result-val" id="tas_p">—</div></div>
+            <div class="result-card"><div class="result-label">Kâr/Zarar durumu</div><div class="result-val blue" id="tas_k">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="6211-kam">
+        <div class="alert-info">Kambiyo senetlerinde (çek, poliçe, bono) protesto halinde senet bedeli + %30 temerrüt faizi + protestodan doğan masraflar talep edilebilir (TTK m.713).</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">📄</span>Kambiyo senedi alacağı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Senet bedeli (₺)</label><input type="number" id="kam1" value="200000"></div>
+            <div class="form-group"><label>Senet türü</label><select id="kam2"><option value="bono">Bono</option><option value="police">Poliçe</option><option value="cek">Çek</option></select></div>
+            <div class="form-group"><label>Vade / ibraz tarihi</label><input type="date" id="kam3" value="2023-01-01"></div>
+            <div class="form-group"><label>Hesap tarihi</label><input type="date" id="kam4" value="2024-06-01"></div>
+            <div class="form-group"><label>Temerrüt faizi (%/yıl)</label><input type="number" id="kam5" value="30" step="0.1"></div>
+            <div class="form-group"><label>Protesto / masraf (₺)</label><input type="number" id="kam6" value="2000"></div>
+          </div>
+          <button class="calc-btn" onclick="fn6211kam()">Kambiyo Alacağını Hesapla</button>
+        </div>
+        <div id="res6211kam" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Senet anapara</div><div class="result-val" id="kam_a">—</div></div>
+            <div class="result-card"><div class="result-label">Faiz alacağı</div><div class="result-val" id="kam_f">—</div></div>
+            <div class="result-card"><div class="result-label">Toplam alacak</div><div class="result-val blue" id="kam_t">—</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">📋</span>Döküm</div>
+            <div class="report-section">
+              <div class="report-row"><span>Senet bedeli</span><span id="kam_r1" class="val">—</span></div>
+              <div class="report-row"><span>Faiz süresi</span><span id="kam_r2" class="val">—</span></div>
+              <div class="report-row"><span>Faiz tutarı</span><span id="kam_r3" class="val">—</span></div>
+              <div class="report-row"><span>Protesto masrafı</span><span id="kam_r4" class="val">—</span></div>
+              <div class="report-row"><span>Genel toplam</span><span id="kam_r5" class="val">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="6211-mv">
+        <div class="mevzuat-item"><div class="mevzuat-title">6102 sayılı TTK — Madde 8 (Ticari faiz)</div><div class="mevzuat-src">Ticari işlerde faiz; taraflarca belirlenmemişse TCMB kısa vadeli avans oranı esas alınır</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">6102 sayılı TTK — Madde 507 (Kâr payı)</div><div class="mevzuat-src">Ortakların kâr payı hakkı; genel kurul kararıyla doğar ve ödenmemesi halinde temerrüt faizi işler</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">6102 sayılı TTK — Madde 543 (Tasfiye)</div><div class="mevzuat-src">Tasfiyede alacaklıların önceliği; kalan aktifin ortaklara pay oranında dağıtılması</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">6102 sayılı TTK — Madde 713 (Kambiyo)</div><span class="mevzuat-src">Protesto halinde senet bedeli, faiz ve masrafların müracaat borçlularından talep edilebileceği</span></div>
+      </div>
+
+    </div>
+  </div>
+</div><!-- /panel-6211 -->
+
+
+<!-- ─────────────── 62.12 BANKACILIK ─────────────── -->
+<div class="module-panel" id="panel-6212">
+  <div class="topbar">
+    <div class="breadcrumb">Platform › <span>62.12 — Bankacılık Mevzuatından Kaynaklı Nitelikli Hesaplamalar</span></div>
+  </div>
+  <div class="content">
+    <div class="module-hero">
+      <div class="module-title"><div class="module-title-icon">🏦</div>62.12 Bankacılık Hesaplamaları</div>
+      <div class="module-desc">5411 sayılı Bankacılık Kanunu kapsamında kredi faiz hesabı, haksız kesinti iadesi, erken ödeme ve mevduat faizi hesaplamaları.</div>
+    </div>
+    <div class="tabs" id="tabs-6212">
+      <button class="tab active" onclick="switchTab('6212','kf',this)">Kredi Faiz Hesabı</button>
+      <button class="tab" onclick="switchTab('6212','ke',this)">Haksız Kesinti</button>
+      <button class="tab" onclick="switchTab('6212','mv2',this)">Mevduat Faizi</button>
+      <button class="tab" onclick="switchTab('6212','mv',this)">Mevzuat</button>
+    </div>
+    <div class="tab-body">
+
+      <div class="tab-content active" id="6212-kf">
+        <div class="alert-info">Tüketici kredilerinde yıllık maliyet oranı (YMO); faiz, komisyon ve masrafların tümünü kapsar. Sözleşmede belirtilen YMO'yu aşan tahsilat haksız kazanç sayılır.</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">💳</span>Tüketici kredisi maliyet hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Kredi anapara (₺)</label><input type="number" id="kf1" value="500000"></div>
+            <div class="form-group"><label>Aylık faiz oranı (%)</label><input type="number" id="kf2" value="3.5" step="0.01"></div>
+            <div class="form-group"><label>Vade (ay)</label><input type="number" id="kf3" value="36"></div>
+            <div class="form-group"><label>Dosya masrafı (₺)</label><input type="number" id="kf4" value="2500"></div>
+            <div class="form-group"><label>Sigorta masrafı (₺/ay)</label><input type="number" id="kf5" value="200"></div>
+            <div class="form-group"><label>Diğer masraflar (₺)</label><input type="number" id="kf6" value="0"></div>
+          </div>
+          <button class="calc-btn" onclick="fn6212kf()">Maliyeti Hesapla</button>
+        </div>
+        <div id="res6212kf" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Aylık taksit</div><div class="result-val" id="kf_tk">—</div></div>
+            <div class="result-card"><div class="result-label">Toplam maliyet</div><div class="result-val" id="kf_tm">—</div></div>
+            <div class="result-card"><div class="result-label">Toplam faiz + masraf</div><div class="result-val blue" id="kf_tf">—</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">📋</span>Maliyet dökümü</div>
+            <div class="report-section">
+              <div class="report-row"><span>Aylık taksit (faiz dahil)</span><span id="kf_r1" class="val">—</span></div>
+              <div class="report-row"><span>Toplam geri ödeme</span><span id="kf_r2" class="val">—</span></div>
+              <div class="report-row"><span>Toplam faiz</span><span id="kf_r3" class="val">—</span></div>
+              <div class="report-row"><span>Dosya masrafı</span><span id="kf_r4" class="val">—</span></div>
+              <div class="report-row"><span>Toplam sigorta</span><span id="kf_r5" class="val">—</span></div>
+              <div class="report-row"><span>Toplam maliyet (faiz + masraf)</span><span id="kf_r6" class="val">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="6212-ke">
+        <div class="alert-info">Bankalar; sözleşmede öngörülmeyen komisyon, ücret ve masrafları tahsil edemez. Haksız tahsil edilen tutarlar yasal faiziyle birlikte iade edilir (5411 s.K. m.144).</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">🔄</span>Haksız kesinti iadesi</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Haksız tahsil edilen tutar (₺)</label><input type="number" id="ke1" value="15000"></div>
+            <div class="form-group"><label>Tahsil tarihi</label><input type="date" id="ke2" value="2022-01-01"></div>
+            <div class="form-group"><label>Hesap / dava tarihi</label><input type="date" id="ke3" value="2024-06-01"></div>
+            <div class="form-group"><label>Yasal faiz (%/yıl)</label><input type="number" id="ke4" value="9" step="0.1"></div>
+            <div class="form-group"><label>Kesinti türü</label><select id="ke5"><option value="komisyon">Komisyon / ücret</option><option value="dosya">Dosya masrafı</option><option value="sigorta">Sigorta primi</option><option value="diger">Diğer</option></select></div>
+            <div class="form-group"><label>Kesinti adedi</label><input type="number" id="ke6" value="1"></div>
+          </div>
+          <button class="calc-btn" onclick="fn6212ke()">İade Tutarını Hesapla</button>
+        </div>
+        <div id="res6212ke" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Haksız kesinti</div><div class="result-val" id="ke_a">—</div></div>
+            <div class="result-card"><div class="result-label">Faiz alacağı</div><div class="result-val" id="ke_f">—</div></div>
+            <div class="result-card"><div class="result-label">Toplam iade alacağı</div><div class="result-val blue" id="ke_t">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="6212-mv2">
+        <div class="alert-info">Mevduat faizi hesabında bileşik veya basit faiz uygulanır. Vade sonunda tahakkuk eden faiz geliri üzerinden stopaj kesintisi yapılır (%15 — GVK m.94).</div>
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">💰</span>Mevduat faizi hesabı</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Mevduat anaparası (₺)</label><input type="number" id="mv1" value="1000000"></div>
+            <div class="form-group"><label>Yıllık faiz oranı (%)</label><input type="number" id="mv2" value="40" step="0.1"></div>
+            <div class="form-group"><label>Vade (gün)</label><input type="number" id="mv3" value="90"></div>
+            <div class="form-group"><label>Hesaplama türü</label><select id="mv4"><option value="basit">Basit faiz</option><option value="bilesik">Bileşik faiz</option></select></div>
+            <div class="form-group"><label>Stopaj oranı (%)</label><input type="number" id="mv5" value="15" step="1"></div>
+            <div class="form-group"><label>Enflasyon oranı (%/yıl)</label><input type="number" id="mv6" value="45" step="0.1"></div>
+          </div>
+          <button class="calc-btn" onclick="fn6212mv()">Mevduat Faizini Hesapla</button>
+        </div>
+        <div id="res6212mv" style="display:none">
+          <div class="results-grid">
+            <div class="result-card"><div class="result-label">Brüt faiz geliri</div><div class="result-val" id="mv_b">—</div></div>
+            <div class="result-card"><div class="result-label">Stopaj sonrası net</div><div class="result-val" id="mv_n">—</div></div>
+            <div class="result-card"><div class="result-label">Reel getiri</div><div class="result-val blue" id="mv_r">—</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-title-icon">📋</span>Faiz döküm</div>
+            <div class="report-section">
+              <div class="report-row"><span>Anapara</span><span id="mv_r1" class="val">—</span></div>
+              <div class="report-row"><span>Brüt faiz</span><span id="mv_r2" class="val">—</span></div>
+              <div class="report-row"><span>Stopaj kesintisi (%<span id="mv_r3_oran">15</span>)</span><span id="mv_r3" class="val">—</span></div>
+              <div class="report-row"><span>Net faiz geliri</span><span id="mv_r4" class="val">—</span></div>
+              <div class="report-row"><span>Enflasyon kaybı</span><span id="mv_r5" class="val">—</span></div>
+              <div class="report-row"><span>Reel getiri</span><span id="mv_r6" class="val">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="6212-mv">
+        <div class="mevzuat-item"><div class="mevzuat-title">5411 sayılı Bankacılık Kanunu — Madde 144</div><div class="mevzuat-src">Bankaların sözleşme dışı ücret ve komisyon tahsil edemeyeceği; haksız tahsilatta iade yükümlülüğü</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">BDDK Yönetmeliği — Finansal Tüketici Ücretleri</div><div class="mevzuat-src">Bankaların tahsil edebileceği ücret kalemleri; onay prosedürü ve şeffaflık yükümlülükleri</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">193 sayılı GVK — Madde 94 (Stopaj)</div><div class="mevzuat-src">Mevduat faizi ve repo gelirlerinden %15 stopaj kesintisi yapılacağı</div></div>
+        <div class="mevzuat-item"><div class="mevzuat-title">Yargıtay 11. HD — Banka haksız kazanç içtihadı</div><div class="mevzuat-src">Sözleşme dışı tahsil edilen masrafların sebepsiz zenginleşme hükümlerine göre iadesi</div></div>
+      </div>
+
+    </div>
+  </div>
+</div><!-- /panel-6212 -->
+
+<!-- ─────────────── KİLİTLİ MODÜLLER ─────────────── -->
+<div class="module-panel" id="panel-locked">
+  <div class="topbar"><div class="breadcrumb">Platform › <span id="locked-title">Modül</span></div></div>
+  <div class="content">
+    <div class="coming-soon">
+      <div class="coming-icon">🔒</div>
+      <div class="coming-title" id="locked-name">Bu modül henüz hazır değil</div>
+      <div class="coming-desc">Geliştirme süreci devam ediyor. Yakında eklenecektir.</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /platform -->
+
+<script>
+/* ─── NAVİGASYON ─── */
+function showModule(id) {
+  document.querySelectorAll('.module-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const panel = document.getElementById('panel-' + id);
+  if (panel) {
+    panel.classList.add('active');
+  } else {
+    document.getElementById('panel-locked').classList.add('active');
+  }
+  event.currentTarget.classList.add('active');
+}
+
+function switchTab(module, tab, btn) {
+  document.querySelectorAll('#tabs-' + module + ' .tab').forEach(t => t.classList.remove('active'));
+  const panel = document.getElementById('panel-' + module);
+  panel.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(module + '-' + tab).classList.add('active');
+}
+
+/* ─── YARDIMCI ─── */
+const fmt = n => new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY',maximumFractionDigits:0}).format(n);
+const fmtN = n => new Intl.NumberFormat('tr-TR',{maximumFractionDigits:2}).format(n);
+
+function ayFarki(d1, d2) {
+  const a = new Date(d1), b = new Date(d2);
+  return (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
+}
+function yilFarki(d1, d2) {
+  return ayFarki(d1, d2) / 12;
+}
+
+/* ─── TRH-2010 ─── */
+const TRH_E = {20:54.3,25:49.5,30:44.7,35:39.9,40:35.2,42:33.4,45:30.6,50:26.1,55:21.8,60:17.8,65:14.1,70:11.0,75:8.4,80:6.2};
+const TRH_K = {20:58.9,25:54.1,30:49.3,35:44.5,40:39.8,42:37.9,45:35.2,50:30.6,55:26.2,60:21.9,65:17.9,70:14.2,75:11.0,80:8.3};
+
+function getBeklenen(yas, c) {
+  const t = c === 'E' ? TRH_E : TRH_K;
+  const keys = Object.keys(t).map(Number).sort((a,b)=>a-b);
+  for (let i = 0; i < keys.length-1; i++) {
+    if (yas >= keys[i] && yas < keys[i+1]) {
+      const r = (yas-keys[i])/(keys[i+1]-keys[i]);
+      return t[keys[i]]*(1-r)+t[keys[i+1]]*r;
+    }
+  }
+  if (yas <= keys[0]) return t[keys[0]];
+  return t[keys[keys.length-1]];
+}
+
+function pvAnnuity(r, n) {
+  if (r === 0) return n;
+  return (1 - Math.pow(1+r, -n)) / r;
+}
+
+/* ═══ 62.01 HESAPLAMALAR ═══ */
+let lastCalc6201 = null;
+
+function hesaplaIsg() {
+  const dogum = document.getElementById('i-dogum').value;
+  const kaza = document.getElementById('i-kaza').value;
+  const c = document.getElementById('i-cinsiyet').value;
+  const mal = parseFloat(document.getElementById('i-maluliyet').value) / 100;
+  const gelir = parseFloat(document.getElementById('i-gelir').value);
+  const emeklilik = parseFloat(document.getElementById('i-emeklilik').value);
+  const iskonto = parseFloat(document.getElementById('i-iskonto').value) / 100;
+
+  const yas = Math.floor((new Date(kaza) - new Date(dogum)) / (365.25*24*3600*1000));
+  const beklenen = getBeklenen(yas, c);
+  const toplamOmur = yas + beklenen;
+  const aktifYil = Math.max(0, emeklilik - yas);
+  const pasifYil = Math.max(0, toplamOmur - emeklilik);
+  const yillikGelir = gelir * 12;
+
+  const pvAktif = pvAnnuity(iskonto, aktifYil);
+  const pvPasif = pvAnnuity(iskonto, pasifYil) * Math.pow(1+iskonto, -aktifYil);
+
+  const aktifTaz = yillikGelir * mal * pvAktif;
+  const pasifTaz = yillikGelir * mal * 0.6 * pvPasif;
+  const toplam = aktifTaz + pasifTaz;
+
+  document.getElementById('r-yas').textContent = yas + ' yaş';
+  document.getElementById('r-aktif').textContent = aktifYil.toFixed(1) + ' yıl';
+  document.getElementById('r-pasif').textContent = pasifYil.toFixed(1) + ' yıl';
+  document.getElementById('r-yillik').textContent = fmt(yillikGelir);
+  document.getElementById('r-mal-oran').textContent = (mal*100).toFixed(0) + '%';
+  document.getElementById('r-aktif-taz').textContent = fmt(aktifTaz);
+  document.getElementById('r-pasif-taz').textContent = fmt(pasifTaz);
+  document.getElementById('r-toplam').textContent = fmt(toplam);
+  document.getElementById('isg-results').style.display = 'block';
+
+  lastCalc6201 = {tip:'İşgöremezlik', yas, aktifYil, pasifYil, mal:(mal*100).toFixed(0), gelir, iskondo:(iskonto*100).toFixed(0), toplam, aktifTaz, pasifTaz};
+}
+
+function hesaplaDyk() {
+  const oyas = parseFloat(document.getElementById('d-oyas').value);
+  const oc = document.getElementById('d-ocinsiyet').value;
+  const hyas = parseFloat(document.getElementById('d-hyas').value);
+  const hc = document.getElementById('d-hcinsiyet').value;
+  const gelir = parseFloat(document.getElementById('d-gelir').value);
+  const pay = parseFloat(document.getElementById('d-pay').value) / 100;
+  const iskonto = parseFloat(document.getElementById('d-iskonto').value) / 100;
+
+  const bH = getBeklenen(hyas, hc);
+  const bO = getBeklenen(oyas, oc);
+  const sure = Math.min(bH, bO);
+  const yillikDestek = gelir * 12 * pay;
+  const pv = pvAnnuity(iskonto, sure);
+  const toplam = yillikDestek * pv;
+
+  document.getElementById('d-yillik').textContent = fmt(yillikDestek);
+  document.getElementById('d-pay-oran').textContent = (pay*100).toFixed(0) + '%';
+  document.getElementById('d-sure').textContent = sure.toFixed(1) + ' yıl';
+  document.getElementById('d-toplam').textContent = fmt(toplam);
+  document.getElementById('dyk-results').style.display = 'block';
+
+  lastCalc6201 = {tip:'Destekten Yoksun Kalma', oyas, hyas, sure, gelir, pay:(pay*100).toFixed(0), iskonto:(iskonto*100).toFixed(0), toplam};
+}
+
+/* ═══ 62.02 HESAPLAMALAR ═══ */
+function hesaplaKidem() {
+  const giris = document.getElementById('k-giris').value;
+  const cikis = document.getElementById('k-cikis').value;
+  const maas = parseFloat(document.getElementById('k-maas').value);
+  const tavanUygula = document.getElementById('k-tavan').value === 'evet';
+  const tavan = parseFloat(document.getElementById('k-tavan-tutar').value);
+
+  const aylar = ayFarki(giris, cikis);
+  const yil = aylar / 12;
+  const gunluk = maas / 30;
+  const yillikTaban = Math.min(tavanUygula ? tavan : Infinity, maas * 30 / 30);
+  const yillikTazminat = tavanUygula ? Math.min(maas, tavan) : maas;
+  const toplam = yillikTazminat * yil;
+
+  document.getElementById('k-sure').textContent = Math.floor(yil) + ' yıl ' + Math.floor((yil % 1)*12) + ' ay';
+  document.getElementById('k-gunluk').textContent = fmt(gunluk);
+  document.getElementById('k-toplam').textContent = fmt(toplam);
+  document.getElementById('k-yil').textContent = yil.toFixed(2) + ' yıl';
+  document.getElementById('k-yillik-taban').textContent = fmt(maas);
+  document.getElementById('k-tavan-durum').textContent = tavanUygula ? (maas > tavan ? 'Tavan uygulandı' : 'Tavan altında') : 'Tavan uygulanmadı';
+  document.getElementById('k-net').textContent = fmt(toplam);
+  document.getElementById('kidem-results').style.display = 'block';
+}
+
+function hesaplaIhbar() {
+  const giris = document.getElementById('ih-giris').value;
+  const cikis = document.getElementById('ih-cikis').value;
+  const gunluk = parseFloat(document.getElementById('ih-gunluk').value);
+
+  const aylar = ayFarki(giris, cikis);
+  let bildirimHafta;
+  if (aylar < 6) bildirimHafta = 2;
+  else if (aylar < 18) bildirimHafta = 4;
+  else if (aylar < 36) bildirimHafta = 6;
+  else bildirimHafta = 8;
+
+  const bildirimGun = bildirimHafta * 7;
+  const toplam = gunluk * bildirimGun;
+  const yil = Math.floor(aylar/12);
+  const kalanAy = aylar % 12;
+
+  document.getElementById('ih-sure').textContent = yil + ' yıl ' + kalanAy + ' ay';
+  document.getElementById('ih-bildirim').textContent = bildirimHafta + ' hafta (' + bildirimGun + ' gün)';
+  document.getElementById('ih-toplam').textContent = fmt(toplam);
+  document.getElementById('ihbar-results').style.display = 'block';
+}
+
+function hesaplaFazla() {
+  const saatlik = parseFloat(document.getElementById('fm-saatlik').value);
+  const saat = parseFloat(document.getElementById('fm-saat').value);
+  const ay = parseFloat(document.getElementById('fm-ay').value);
+  const zam = parseFloat(document.getElementById('fm-zam').value);
+  const indirim = parseFloat(document.getElementById('fm-indirim').value) / 100;
+
+  const haftalik = saatlik * saat * zam;
+  const aylik = haftalik * 4.33;
+  const brut = aylik * ay;
+  const indirimTutar = brut * indirim;
+  const net = brut - indirimTutar;
+
+  document.getElementById('fm-brut').textContent = fmt(brut);
+  document.getElementById('fm-indirim-tutar').textContent = fmt(indirimTutar);
+  document.getElementById('fm-net').textContent = fmt(net);
+  document.getElementById('fazla-results').style.display = 'block';
+}
+
+function hesaplaIzin() {
+  const giris = document.getElementById('iz-giris').value;
+  const tarih = document.getElementById('iz-tarih').value;
+  const gunluk = parseFloat(document.getElementById('iz-gunluk').value);
+  const gun = parseFloat(document.getElementById('iz-gun').value);
+
+  const aylar = ayFarki(giris, tarih);
+  const yil = aylar / 12;
+  let izinGunYil;
+  if (yil < 1) izinGunYil = 0;
+  else if (yil < 5) izinGunYil = 14;
+  else if (yil < 15) izinGunYil = 20;
+  else izinGunYil = 26;
+
+  const toplam = gunluk * gun;
+  const yilStr = Math.floor(yil) + ' yıl ' + Math.floor((yil%1)*12) + ' ay';
+
+  document.getElementById('iz-sure').textContent = yilStr;
+  document.getElementById('iz-hakediş').textContent = izinGunYil + ' gün/yıl';
+  document.getElementById('iz-toplam').textContent = fmt(toplam);
+  document.getElementById('izin-results').style.display = 'block';
+}
+
+/* ═══ 62.03 HESAPLAMALAR ═══ */
+function hesaplaPrim() {
+  const maas = parseFloat(document.getElementById('p-maas').value);
+  const kisi = parseFloat(document.getElementById('p-kisi').value);
+  const ay = parseFloat(document.getElementById('p-ay').value);
+  const taban = parseFloat(document.getElementById('p-taban').value);
+  const tavan = parseFloat(document.getElementById('p-tavan').value);
+  const tur = document.getElementById('p-tur').value;
+
+  const pek = Math.max(taban, Math.min(tavan, maas));
+  const isciOran = 0.215;
+  const isverenOran = 0.205;
+
+  const isciAylik = pek * isciOran * kisi;
+  const isverenAylik = pek * isverenOran * kisi;
+  const toplamAylik = isciAylik + isverenAylik;
+  const donemToplam = toplamAylik * ay;
+
+  document.getElementById('pr-isci').textContent = fmt(isciAylik);
+  document.getElementById('pr-isveren').textContent = fmt(isverenAylik);
+  document.getElementById('pr-toplam').textContent = fmt(donemToplam);
+  document.getElementById('pr-kazanc').textContent = fmt(pek);
+  document.getElementById('pr-isci-ay').textContent = fmt(isciAylik);
+  document.getElementById('pr-iv-ay').textContent = fmt(isverenAylik);
+  document.getElementById('pr-aylik').textContent = fmt(toplamAylik);
+  document.getElementById('pr-ay-label').textContent = ay;
+  document.getElementById('pr-donem').textContent = fmt(donemToplam);
+  document.getElementById('prim-results').style.display = 'block';
+}
+
+function hesaplaGecikme() {
+  const anapara = parseFloat(document.getElementById('gz-anapara').value);
+  const vade = document.getElementById('gz-vade').value;
+  const hesap = document.getElementById('gz-hesap').value;
+  const oran = parseFloat(document.getElementById('gz-oran').value) / 100;
+
+  const ay = Math.max(0, ayFarki(vade, hesap));
+  const zamm = anapara * oran * ay;
+  const toplam = anapara + zamm;
+
+  document.getElementById('gz-sure').textContent = ay + ' ay';
+  document.getElementById('gz-zamm').textContent = fmt(zamm);
+  document.getElementById('gz-toplam').textContent = fmt(toplam);
+  document.getElementById('gecikme-results').style.display = 'block';
+}
+
+function hesaplaRucan() {
+  const gecici = parseFloat(document.getElementById('rc-gecici').value);
+  const surekliyillik = parseFloat(document.getElementById('rc-surekliyillik').value);
+  const yas = parseFloat(document.getElementById('rc-yas').value);
+  const kusur = parseFloat(document.getElementById('rc-kusur').value) / 100;
+
+  const beklenen = getBeklenen(yas, 'E');
+  const iskonto = 0.10;
+  const pv = pvAnnuity(iskonto, beklenen);
+  const kapDeger = surekliyillik * pv;
+  const toplam = (gecici + kapDeger) * kusur;
+
+  document.getElementById('rc-g').textContent = fmt(gecici);
+  document.getElementById('rc-kap').textContent = fmt(kapDeger);
+  document.getElementById('rc-toplam').textContent = fmt(toplam);
+  document.getElementById('rucan-results').style.display = 'block';
+}
+
+/* ═══ 62.04 HESAPLAMALAR ═══ */
+function hesaplaTisFark() {
+  const bas = document.getElementById('tf-baslangic').value;
+  const bit = document.getElementById('tf-bitis').value;
+  const eski = parseFloat(document.getElementById('tf-eski').value);
+  const zamOran = parseFloat(document.getElementById('tf-zam').value);
+  const ikramiye = parseFloat(document.getElementById('tf-ikramiye').value) || 0;
+  let yeni = parseFloat(document.getElementById('tf-yeni').value);
+  if (zamOran > 0) yeni = eski * (1 + zamOran/100);
+
+  const aylar = ayFarki(bas, bit);
+  const aylikFark = yeni - eski;
+  const ucretFark = aylikFark * aylar;
+  const toplam = ucretFark + ikramiye;
+
+  document.getElementById('tf-ay').textContent = aylar + ' ay';
+  document.getElementById('tf-aylik-fark').textContent = fmt(aylikFark);
+  document.getElementById('tf-toplam').textContent = fmt(toplam);
+  document.getElementById('tf-r-eski').textContent = fmt(eski);
+  document.getElementById('tf-r-yeni').textContent = fmt(yeni);
+  document.getElementById('tf-r-fark').textContent = fmt(aylikFark);
+  document.getElementById('tf-r-ucret').textContent = fmt(ucretFark);
+  document.getElementById('tf-r-ikramiye').textContent = fmt(ikramiye);
+  document.getElementById('tf-r-toplam').textContent = fmt(toplam);
+  document.getElementById('tisfark-results').style.display = 'block';
+}
+
+function hesaplaAidat() {
+  const maas = parseFloat(document.getElementById('ai-maas').value);
+  const oran = parseFloat(document.getElementById('ai-oran').value) / 100;
+  const ay = parseFloat(document.getElementById('ai-ay').value);
+  const aylik = maas * oran;
+  const toplam = aylik * ay;
+  document.getElementById('ai-aylik').textContent = fmt(aylik);
+  document.getElementById('ai-donem').textContent = ay + ' ay';
+  document.getElementById('ai-toplam').textContent = fmt(toplam);
+  document.getElementById('aidat-results').style.display = 'block';
+}
+
+function hesaplaGrev() {
+  const bas = new Date(document.getElementById('gr-baslangic').value);
+  const bit = new Date(document.getElementById('gr-bitis').value);
+  const gunluk = parseFloat(document.getElementById('gr-gunluk').value);
+  const kisi = parseFloat(document.getElementById('gr-kisi').value);
+  const gun = Math.ceil((bit - bas) / (1000*3600*24));
+  const kisiKayip = gunluk * gun;
+  const toplam = kisiKayip * kisi;
+  const kidemDus = (gun / 365).toFixed(2) + ' yıl düşülür';
+  document.getElementById('gr-sure').textContent = gun + ' gün';
+  document.getElementById('gr-kisi-kayip').textContent = fmt(kisiKayip);
+  document.getElementById('gr-toplam').textContent = fmt(toplam);
+  document.getElementById('gr-r-gun').textContent = gun + ' gün';
+  document.getElementById('gr-r-kidem').textContent = kidemDus;
+  document.getElementById('grev-results').style.display = 'block';
+}
+
+/* ═══ 62.05 HESAPLAMALAR ═══ */
+function hesaplaFaiz() {
+  const anapara = parseFloat(document.getElementById('fz-anapara').value);
+  const bas = document.getElementById('fz-baslangic').value;
+  const bit = document.getElementById('fz-bitis').value;
+  const tur = document.getElementById('fz-tur').value;
+  const yontem = document.getElementById('fz-yontem').value;
+  let oran = tur === 'ozel' ? parseFloat(document.getElementById('fz-ozel').value) : parseFloat(tur);
+
+  const gun = Math.ceil((new Date(bit) - new Date(bas)) / (1000*3600*24));
+  const yil = gun / 365;
+  let faiz;
+  if (yontem === 'basit') {
+    faiz = anapara * (oran/100) * yil;
+  } else {
+    faiz = anapara * (Math.pow(1 + oran/100, yil) - 1);
+  }
+  const toplam = anapara + faiz;
+  const yilStr = Math.floor(yil) + ' yıl ' + Math.floor((yil%1)*12) + ' ay ' + (gun % 30) + ' gün';
+
+  document.getElementById('fz-sure').textContent = gun + ' gün';
+  document.getElementById('fz-faiz').textContent = fmt(faiz);
+  document.getElementById('fz-toplam').textContent = fmt(toplam);
+  document.getElementById('fz-r-anapara').textContent = fmt(anapara);
+  document.getElementById('fz-r-oran').textContent = '%' + oran + '/yıl (' + (yontem === 'basit' ? 'basit' : 'bileşik') + ')';
+  document.getElementById('fz-r-sure').textContent = yilStr;
+  document.getElementById('fz-r-faiz').textContent = fmt(faiz);
+  document.getElementById('fz-r-toplam').textContent = fmt(toplam);
+  document.getElementById('faiz-results').style.display = 'block';
+}
+
+function hesaplaMasraf() {
+  const anapara = parseFloat(document.getElementById('ms-anapara').value);
+  const basvuru = parseFloat(document.getElementById('ms-basvuru').value);
+  const pesinOran = parseFloat(document.getElementById('ms-pesin').value) / 1000;
+  const vekalet = parseFloat(document.getElementById('ms-vekalet').value);
+  const tebligat = parseFloat(document.getElementById('ms-tebligat').value);
+  const pesinHarc = anapara * pesinOran;
+  const toplamHarc = basvuru + pesinHarc;
+  const diger = vekalet + tebligat;
+  const toplam = toplamHarc + diger;
+  document.getElementById('ms-harc').textContent = fmt(toplamHarc);
+  document.getElementById('ms-diger').textContent = fmt(diger);
+  document.getElementById('ms-toplam').textContent = fmt(toplam);
+  document.getElementById('ms-r-basvuru').textContent = fmt(basvuru);
+  document.getElementById('ms-r-pesin-oran').textContent = (pesinOran*1000).toFixed(2);
+  document.getElementById('ms-r-pesin').textContent = fmt(pesinHarc);
+  document.getElementById('ms-r-vekalet').textContent = fmt(vekalet);
+  document.getElementById('ms-r-tebligat').textContent = fmt(tebligat);
+  document.getElementById('ms-r-toplam').textContent = fmt(toplam);
+  document.getElementById('masraf-results').style.display = 'block';
+}
+
+function hesaplaIflas() {
+  const aktif = parseFloat(document.getElementById('if-aktif').value);
+  const masraf = parseFloat(document.getElementById('if-masraf').value);
+  const s = [0,
+    parseFloat(document.getElementById('if-s1').value),
+    parseFloat(document.getElementById('if-s2').value),
+    parseFloat(document.getElementById('if-s3').value),
+    parseFloat(document.getElementById('if-s4').value),
+    parseFloat(document.getElementById('if-s5').value)
+  ];
+  const etiketler = ['','1. Sıra — İşçi alacakları','2. Sıra — Nafaka','3. Sıra — Rehinli','4. Sıra — İmtiyazlı','5. Sıra — Adi alacaklar'];
+  let kalan = aktif - masraf;
+  let html = `<div class="report-row"><span>Toplam aktif</span><span class="val">${fmt(aktif)}</span></div>`;
+  html += `<div class="report-row"><span>Masraf ve harçlar</span><span class="val">- ${fmt(masraf)}</span></div>`;
+  html += `<div class="report-row" style="border-top:2px solid #e0e0dd;margin-top:4px"><span>Dağıtılabilir</span><span class="val">${fmt(kalan)}</span></div>`;
+  for (let i = 1; i <= 5; i++) {
+    if (s[i] <= 0) continue;
+    const odeme = Math.min(kalan, s[i]);
+    const oran = ((odeme/s[i])*100).toFixed(1);
+    kalan = Math.max(0, kalan - s[i]);
+    html += `<div class="report-row"><span>${etiketler[i]} (${fmt(s[i])})</span><span class="val">${fmt(odeme)} (%${oran})</span></div>`;
+  }
+  html += `<div class="report-row"><span>Ödeme sonrası kalan</span><span class="val">${fmt(kalan)}</span></div>`;
+  document.getElementById('iflas-tablo').innerHTML = html;
+  document.getElementById('iflas-results').style.display = 'block';
+}
+
+
+/* ═══ 62.06 HESAPLAMALAR ═══ */
+function hesaplaNafaka() {
+  const aylik = parseFloat(document.getElementById('nf-aylik').value);
+  const bas = document.getElementById('nf-baslangic').value;
+  const bit = document.getElementById('nf-bitis').value;
+  const faizOran = parseFloat(document.getElementById('nf-faiz').value) / 100;
+  const odenen = parseFloat(document.getElementById('nf-odenen').value) || 0;
+
+  const ay = ayFarki(bas, bit);
+  const toplamNafaka = aylik * ay;
+  const kalan = Math.max(0, toplamNafaka - odenen);
+  const yil = ay / 12;
+  const faiz = kalan * faizOran * yil;
+  const toplam = kalan + faiz;
+
+  document.getElementById('nf-donem').textContent = ay + ' ay';
+  document.getElementById('nf-birikmis').textContent = fmt(toplamNafaka);
+  document.getElementById('nf-toplam').textContent = fmt(toplam);
+  document.getElementById('nf-r-ana').textContent = fmt(toplamNafaka);
+  document.getElementById('nf-r-odenen').textContent = fmt(odened => odened, odenen);
+  document.getElementById('nf-r-odenen').textContent = fmt(odenen);
+  document.getElementById('nf-r-kalan').textContent = fmt(kalan);
+  document.getElementById('nf-r-faiz-oran').textContent = (faizOran*100).toFixed(1);
+  document.getElementById('nf-r-faiz').textContent = fmt(faiz);
+  document.getElementById('nf-r-toplam').textContent = fmt(toplam);
+  document.getElementById('nafaka-results').style.display = 'block';
+}
+
+function hesaplaMalRejimi() {
+  const aEdl = parseFloat(document.getElementById('mr-a-edinilmis').value);
+  const aBorc = parseFloat(document.getElementById('mr-a-borc').value);
+  const bEdl = parseFloat(document.getElementById('mr-b-edinilmis').value);
+  const bBorc = parseFloat(document.getElementById('mr-b-borc').value);
+
+  const aArtik = Math.max(0, aEdl - aBorc);
+  const bArtik = Math.max(0, bEdl - bBorc);
+  const toplam = aArtik + bArtik;
+  const esit = toplam / 2;
+  const katilma = Math.abs(aArtik - bArtik) / 2;
+
+  document.getElementById('mr-a-artik').textContent = fmt(aArtik);
+  document.getElementById('mr-b-artik').textContent = fmt(bArtik);
+  document.getElementById('mr-katilma').textContent = fmt(katilma);
+  document.getElementById('mr-r-a').textContent = fmt(aArtik);
+  document.getElementById('mr-r-b').textContent = fmt(bArtik);
+  document.getElementById('mr-r-toplam').textContent = fmt(toplam);
+  document.getElementById('mr-r-katilma').textContent = fmt(katilma);
+  document.getElementById('malrejimi-results').style.display = 'block';
+}
+
+function hesaplaMirasPayi() {
+  const tereke = parseFloat(document.getElementById('ms2-tereke').value);
+  const esVar = document.getElementById('ms2-es').value === 'evet';
+  const cocuk = parseInt(document.getElementById('ms2-cocuk').value) || 0;
+
+  let html = '';
+  const satirEkle = (ad, pay, tutar) => {
+    html += `<div class="report-row"><span>${ad}</span><span class="val">${pay} → ${fmt(tutar)}</span></div>`;
+  };
+
+  if (cocuk > 0 && esVar) {
+    const esPay = tereke * 0.25;
+    const cocukPay = (tereke * 0.75) / cocuk;
+    satirEkle('Sağ kalan eş', '1/4', esPay);
+    for (let i = 1; i <= cocuk; i++) satirEkle(`${i}. çocuk`, `3/4 ÷ ${cocuk}`, cocukPay);
+  } else if (cocuk > 0 && !esVar) {
+    const cocukPay = tereke / cocuk;
+    for (let i = 1; i <= cocuk; i++) satirEkle(`${i}. çocuk`, `1/${cocuk}`, cocukPay);
+  } else if (cocuk === 0 && esVar) {
+    satirEkle('Sağ kalan eş (altsoy yok)', 'Tamamı', tereke);
+  } else {
+    satirEkle('Mirasçı belirlenemedi', '—', 0);
+  }
+  html += `<div class="report-row"><span>Toplam tereke</span><span class="val">${fmt(tereke)}</span></div>`;
+  document.getElementById('miras-tablo').innerHTML = html;
+  document.getElementById('miras-results').style.display = 'block';
+}
+
+function hesaplaTenkis() {
+  const tereke = parseFloat(document.getElementById('tk-tereke').value);
+  const bagis = parseFloat(document.getElementById('tk-bagis').value);
+  const sakliOran = parseFloat(document.getElementById('tk-sakli').value);
+  const kisi = parseInt(document.getElementById('tk-kisi').value);
+
+  const sakliPay = tereke * sakliOran;
+  const tasarrufNisabi = 1 - sakliOran;
+  const maxTasarruf = tereke * tasarrufNisabi;
+  const tenkis = Math.max(0, bagis - maxTasarruf);
+
+  document.getElementById('tk-oran').textContent = '%' + (tasarrufNisabi*100).toFixed(0);
+  document.getElementById('tk-sakli-tutar').textContent = fmt(sakliPay);
+  document.getElementById('tk-toplam').textContent = fmt(tenkis);
+  document.getElementById('tk-r-tereke').textContent = fmt(tereke);
+  document.getElementById('tk-r-nisap').textContent = '%' + (tasarrufNisabi*100).toFixed(0);
+  document.getElementById('tk-r-max').textContent = fmt(maxTasarruf);
+  document.getElementById('tk-r-bagis').textContent = fmt(bagis);
+  document.getElementById('tk-r-tenkis').textContent = fmt(tenkis);
+  document.getElementById('tenkis-results').style.display = 'block';
+}
+
+/* ═══ 62.07 HESAPLAMALAR ═══ */
+function hesaplaKoopPay() {
+  const odenen = parseFloat(document.getElementById('kp-odenen').value);
+  const varlik = parseFloat(document.getElementById('kp-varlik').value);
+  const ortak = parseFloat(document.getElementById('kp-ortak').value);
+  const pay = parseFloat(document.getElementById('kp-pay').value);
+
+  const payBasiDeger = varlik / ortak;
+  const toplamPayDeger = payBasiDeger * pay;
+  const iade = Math.max(odenen, toplamPayDeger);
+
+  document.getElementById('kp-gercek').textContent = fmt(payBasiDeger);
+  document.getElementById('kp-r-odenen').textContent = fmt(odenen);
+  document.getElementById('kp-iade').textContent = fmt(iade);
+  document.getElementById('kp-r-varlik').textContent = fmt(varlik);
+  document.getElementById('kp-r-pay').textContent = fmt(payBasiDeger);
+  document.getElementById('kp-r-toplam-pay').textContent = fmt(toplamPayDeger);
+  document.getElementById('kp-r-iade').textContent = fmt(iade);
+  document.getElementById('kooppay-results').style.display = 'block';
+}
+
+function hesaplaKoopAidat() {
+  const aylik = parseFloat(document.getElementById('ka-aylik').value);
+  const ay = parseFloat(document.getElementById('ka-ay').value);
+  const faiz = parseFloat(document.getElementById('ka-faiz').value) / 100;
+  const gecikme = parseFloat(document.getElementById('ka-gecikme').value);
+
+  const anapara = aylik * ay;
+  const gecikmeF = anapara * faiz * (gecikme / 12);
+  const toplam = anapara + gecikmeF;
+
+  document.getElementById('ka-anapara').textContent = fmt(anapara);
+  document.getElementById('ka-gecikme-tutar').textContent = fmt(gecikmeF);
+  document.getElementById('ka-toplam').textContent = fmt(toplam);
+  document.getElementById('koopaidat-results').style.display = 'block';
+}
+
+function hesaplaKoopZarar() {
+  const zarar = parseFloat(document.getElementById('kz-zarar').value);
+  const kisi = parseFloat(document.getElementById('kz-kisi').value);
+  const tarih = document.getElementById('kz-tarih').value;
+  const dava = document.getElementById('kz-dava').value;
+  const faizOran = parseFloat(document.getElementById('kz-faiz').value) / 100;
+  const payTur = document.getElementById('kz-pay').value;
+
+  const ay = ayFarki(tarih, dava);
+  const faiz = zarar * faizOran * (ay / 12);
+  const toplam = zarar + faiz;
+  const kisiBasi = payTur === 'esit' ? toplam / kisi : toplam;
+
+  document.getElementById('kz-anapara').textContent = fmt(zarar);
+  document.getElementById('kz-faiz-tutar').textContent = fmt(faiz);
+  document.getElementById('kz-toplam').textContent = fmt(toplam);
+  document.getElementById('kz-r-toplam').textContent = fmt(toplam);
+  document.getElementById('kz-r-tur').textContent = payTur === 'muteselsil' ? 'Müteselsil (her biri tamamından sorumlu)' : 'Eşit pay';
+  document.getElementById('kz-r-kisi').textContent = fmt(kisiBasi);
+  document.getElementById('koopzarar-results').style.display = 'block';
+}
+
+
+
+
+
+/* ═══ 62.08 ═══ */
+function fn6208og(){
+  var a=parseFloat(document.getElementById('og1').value);
+  var b=parseFloat(document.getElementById('og2').value);
+  var c=parseFloat(document.getElementById('og3').value)/100;
+  var d=parseFloat(document.getElementById('og4').value);
+  var ana=a*b; var taz=ana*c*d; var top=ana+taz;
+  document.getElementById('og_a').textContent=fmt(ana);
+  document.getElementById('og_g').textContent=fmt(taz);
+  document.getElementById('og_t').textContent=fmt(top);
+  document.getElementById('res6208og').style.display='block';
+}
+function fn6208gt(){
+  var a=parseFloat(document.getElementById('gt1').value);
+  var b=document.getElementById('gt2').value;
+  var c=document.getElementById('gt3').value;
+  var d=parseFloat(document.getElementById('gt4').value)/100;
+  var ay=Math.max(0,ayFarki(b,c));
+  var taz=a*d*ay; var top=a+taz;
+  document.getElementById('gt_s').textContent=ay+' ay';
+  document.getElementById('gt_t').textContent=fmt(taz);
+  document.getElementById('gt_to').textContent=fmt(top);
+  document.getElementById('res6208gt').style.display='block';
+}
+function fn6208ap(){
+  var a=parseFloat(document.getElementById('ap1').value);
+  var b=parseFloat(document.getElementById('ap2').value);
+  var c=parseFloat(document.getElementById('ap3').value);
+  var d=parseFloat(document.getElementById('ap4').value);
+  var oran=a/b; var aylik=c*oran; var top=aylik*d;
+  document.getElementById('ap_o').textContent='%'+(oran*100).toFixed(2);
+  document.getElementById('ap_a').textContent=fmt(aylik);
+  document.getElementById('ap_t').textContent=fmt(top);
+  document.getElementById('res6208ap').style.display='block';
+}
+
+/* ═══ 62.09 ═══ */
+function fn6209ay(){
+  var bedel=parseFloat(document.getElementById('ay1').value);
+  var tur=document.getElementById('ay2').value;
+  var oran=parseFloat(document.getElementById('ay3').value)/100;
+  var onarim=parseFloat(document.getElementById('ay4').value)||0;
+  var satis=document.getElementById('ay5').value;
+  var dava=document.getElementById('ay6').value;
+  var fr=parseFloat(document.getElementById('ay7').value)/100;
+  var ana= tur==='orantili'? bedel*oran : tur==='iade'? bedel : onarim;
+  var yil=ayFarki(satis,dava)/12;
+  var faiz=ana*fr*yil; var top=ana+faiz;
+  document.getElementById('ay_a').textContent=fmt(ana);
+  document.getElementById('ay_f').textContent=fmt(faiz);
+  document.getElementById('ay_t').textContent=fmt(top);
+  document.getElementById('res6209ay').style.display='block';
+}
+function fn6209kk(){
+  var P=parseFloat(document.getElementById('kk1').value);
+  var yf=parseFloat(document.getElementById('kk2').value)/100;
+  var n=parseFloat(document.getElementById('kk3').value);
+  var ea=parseFloat(document.getElementById('kk4').value);
+  var r=yf/12;
+  var taksit=P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+  var topOdeme=taksit*n; var topFaiz=topOdeme-P;
+  var kalan=P;
+  for(var i=0;i<ea;i++){var fp=kalan*r;kalan-=(taksit-fp);}
+  kalan=Math.max(0,kalan);
+  var eu=kalan*0.02;
+  document.getElementById('kk_tk').textContent=fmt(taksit);
+  document.getElementById('kk_ka').textContent=fmt(kalan);
+  document.getElementById('kk_eu').textContent=fmt(eu);
+  document.getElementById('kk_r1').textContent=fmt(taksit);
+  document.getElementById('kk_r2').textContent=fmt(topOdeme);
+  document.getElementById('kk_r3').textContent=fmt(topFaiz);
+  document.getElementById('kk_r4').textContent=fmt(kalan);
+  document.getElementById('kk_r5').textContent=fmt(eu);
+  document.getElementById('res6209kk').style.display='block';
+}
+function fn6209cy(){
+  var b=parseFloat(document.getElementById('cy1').value);
+  var s=parseFloat(document.getElementById('cy2').value);
+  var k=parseFloat(document.getElementById('cy3').value);
+  var c=parseFloat(document.getElementById('cy4').value)/100;
+  var kBedel=b/s*k; var kalan=b-kBedel; var ceza=kalan*c; var iade=kalan-ceza;
+  document.getElementById('cy_k').textContent=fmt(kBedel);
+  document.getElementById('cy_c').textContent=fmt(ceza);
+  document.getElementById('cy_i').textContent=fmt(iade);
+  document.getElementById('res6209cy').style.display='block';
+}
+
+/* ═══ 62.10 ═══ */
+function fn6210hf(){
+  var f=parseFloat(document.getElementById('hf1').value);
+  var y=parseFloat(document.getElementById('hf2').value);
+  var m=parseFloat(document.getElementById('hf3').value)||0;
+  var k=parseFloat(document.getElementById('hf4').value)/100;
+  var t1=document.getElementById('hf5').value;
+  var t2=document.getElementById('hf6').value;
+  var fr=parseFloat(document.getElementById('hf7').value)/100;
+  var maddi=(f+y)*k;
+  var faiz=maddi*fr*(ayFarki(t1,t2)/12);
+  var top=maddi+faiz+m;
+  document.getElementById('hf_m').textContent=fmt(maddi);
+  document.getElementById('hf_mf').textContent=fmt(maddi+faiz);
+  document.getElementById('hf_t').textContent=fmt(top);
+  document.getElementById('hf_r1').textContent=fmt(f);
+  document.getElementById('hf_r2').textContent=fmt(y);
+  document.getElementById('hf_r3').textContent='%'+(k*100).toFixed(0);
+  document.getElementById('hf_r4').textContent=fmt(maddi);
+  document.getElementById('hf_r5').textContent=fmt(faiz);
+  document.getElementById('hf_r6').textContent=fmt(m);
+  document.getElementById('hf_r7').textContent=fmt(top);
+  document.getElementById('res6210hf').style.display='block';
+}
+function fn6210kr(){
+  var a=parseFloat(document.getElementById('kr1').value);
+  var b=parseFloat(document.getElementById('kr2').value);
+  var c=parseFloat(document.getElementById('kr3').value)/100;
+  var d=parseFloat(document.getElementById('kr4').value);
+  var e=parseFloat(document.getElementById('kr5').value)/100;
+  var f=parseFloat(document.getElementById('kr6').value);
+  var guncel=a*Math.pow(1+c,d);
+  var ana=guncel*b; var faiz=ana*e*(f/12); var top=ana+faiz;
+  document.getElementById('kr_g').textContent=fmt(guncel);
+  document.getElementById('kr_a').textContent=fmt(ana);
+  document.getElementById('kr_t').textContent=fmt(top);
+  document.getElementById('res6210kr').style.display='block';
+}
+function fn6210cs(){
+  var a=parseFloat(document.getElementById('cs1').value);
+  var b=parseFloat(document.getElementById('cs2').value)/100;
+  var c=parseFloat(document.getElementById('cs3').value)/100;
+  var d=parseFloat(document.getElementById('cs4').value)/100;
+  var brut=a*b*c; var ind=brut*d; var net=brut-ind;
+  document.getElementById('cs_b').textContent=fmt(brut);
+  document.getElementById('cs_i').textContent=fmt(ind);
+  document.getElementById('cs_n').textContent=fmt(net);
+  document.getElementById('res6210cs').style.display='block';
+}
+function fn6210sz(){
+  var m=parseFloat(document.getElementById('sz1').value);
+  var t1=document.getElementById('sz2').value;
+  var t2=document.getElementById('sz3').value;
+  var n=document.getElementById('sz4').value;
+  var fr=parseFloat(document.getElementById('sz5').value)/100;
+  var faiz= n==='kotu'? m*fr*(ayFarki(t1,t2)/12) : 0;
+  var top=m+faiz;
+  document.getElementById('sz_a').textContent=fmt(m);
+  document.getElementById('sz_f').textContent=fmt(faiz);
+  document.getElementById('sz_t').textContent=fmt(top);
+  document.getElementById('res6210sz').style.display='block';
+}
+
+
+/* ═══ 62.11 ═══ */
+function fn6211tf(){
+  var a=parseFloat(document.getElementById('tf1').value);
+  var b=document.getElementById('tf2').value;
+  var c=document.getElementById('tf3').value;
+  var r=parseFloat(document.getElementById('tf4').value)/100;
+  var yon=document.getElementById('tf5').value;
+  var kdv=parseFloat(document.getElementById('tf6').value)/100;
+  var yil=ayFarki(b,c)/12;
+  var gun=Math.ceil((new Date(c)-new Date(b))/(1000*3600*24));
+  var faiz= yon==='basit'? a*r*yil : a*(Math.pow(1+r,yil)-1);
+  var kdvTutar=faiz*kdv;
+  var top=a+faiz+kdvTutar;
+  document.getElementById('tf_s').textContent=gun+' gün';
+  document.getElementById('tf_f').textContent=fmt(faiz);
+  document.getElementById('tf_t').textContent=fmt(top);
+  document.getElementById('tf_r1').textContent=fmt(a);
+  document.getElementById('tf_r2').textContent='%'+r*100+' / '+(yon==='basit'?'Basit':'Bileşik');
+  document.getElementById('tf_r3').textContent=gun+' gün ('+yil.toFixed(2)+' yıl)';
+  document.getElementById('tf_r4').textContent=fmt(faiz);
+  document.getElementById('tf_r5').textContent=kdv>0?fmt(kdvTutar):'—';
+  document.getElementById('tf_r6').textContent=fmt(top);
+  document.getElementById('res6211tf').style.display='block';
+}
+function fn6211kar(){
+  var kar=parseFloat(document.getElementById('kar1').value);
+  var dagOran=parseFloat(document.getElementById('kar2').value)/100;
+  var payOran=parseFloat(document.getElementById('kar3').value)/100;
+  var t1=document.getElementById('kar4').value;
+  var t2=document.getElementById('kar5').value;
+  var fr=parseFloat(document.getElementById('kar6').value)/100;
+  var dagKar=kar*dagOran;
+  var ortakPay=dagKar*payOran;
+  var faiz=ortakPay*fr*(ayFarki(t1,t2)/12);
+  var top=ortakPay+faiz;
+  document.getElementById('kar_d').textContent=fmt(dagKar);
+  document.getElementById('kar_p').textContent=fmt(ortakPay);
+  document.getElementById('kar_t').textContent=fmt(top);
+  document.getElementById('res6211kar').style.display='block';
+}
+function fn6211tas(){
+  var aktif=parseFloat(document.getElementById('tas1').value);
+  var borc=parseFloat(document.getElementById('tas2').value);
+  var payOran=parseFloat(document.getElementById('tas3').value)/100;
+  var odenen=parseFloat(document.getElementById('tas4').value);
+  var dagitilabilir=Math.max(0,aktif-borc);
+  var ortakPay=dagitilabilir*payOran;
+  var karZarar=ortakPay-odenen;
+  document.getElementById('tas_d').textContent=fmt(dagitilabilir);
+  document.getElementById('tas_p').textContent=fmt(ortakPay);
+  document.getElementById('tas_k').textContent=(karZarar>=0?'Kâr: ':'Zarar: ')+fmt(Math.abs(karZarar));
+  document.getElementById('res6211tas').style.display='block';
+}
+function fn6211kam(){
+  var a=parseFloat(document.getElementById('kam1').value);
+  var t1=document.getElementById('kam3').value;
+  var t2=document.getElementById('kam4').value;
+  var fr=parseFloat(document.getElementById('kam5').value)/100;
+  var masraf=parseFloat(document.getElementById('kam6').value)||0;
+  var gun=Math.ceil((new Date(t2)-new Date(t1))/(1000*3600*24));
+  var faiz=a*fr*(gun/365);
+  var top=a+faiz+masraf;
+  document.getElementById('kam_a').textContent=fmt(a);
+  document.getElementById('kam_f').textContent=fmt(faiz);
+  document.getElementById('kam_t').textContent=fmt(top);
+  document.getElementById('kam_r1').textContent=fmt(a);
+  document.getElementById('kam_r2').textContent=gun+' gün';
+  document.getElementById('kam_r3').textContent=fmt(faiz);
+  document.getElementById('kam_r4').textContent=fmt(masraf);
+  document.getElementById('kam_r5').textContent=fmt(top);
+  document.getElementById('res6211kam').style.display='block';
+}
+
+/* ═══ 62.12 ═══ */
+function fn6212kf(){
+  var P=parseFloat(document.getElementById('kf1').value);
+  var r=parseFloat(document.getElementById('kf2').value)/100;
+  var n=parseFloat(document.getElementById('kf3').value);
+  var dosya=parseFloat(document.getElementById('kf4').value)||0;
+  var sigAylik=parseFloat(document.getElementById('kf5').value)||0;
+  var diger=parseFloat(document.getElementById('kf6').value)||0;
+  var taksit=P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+  var topOdeme=taksit*n;
+  var topFaiz=topOdeme-P;
+  var topSig=sigAylik*n;
+  var topMasraf=dosya+topSig+diger;
+  var topMaliyet=topFaiz+topMasraf;
+  document.getElementById('kf_tk').textContent=fmt(taksit);
+  document.getElementById('kf_tm').textContent=fmt(topOdeme+topMasraf);
+  document.getElementById('kf_tf').textContent=fmt(topMaliyet);
+  document.getElementById('kf_r1').textContent=fmt(taksit);
+  document.getElementById('kf_r2').textContent=fmt(topOdeme);
+  document.getElementById('kf_r3').textContent=fmt(topFaiz);
+  document.getElementById('kf_r4').textContent=fmt(dosya);
+  document.getElementById('kf_r5').textContent=fmt(topSig);
+  document.getElementById('kf_r6').textContent=fmt(topMaliyet);
+  document.getElementById('res6212kf').style.display='block';
+}
+function fn6212ke(){
+  var a=parseFloat(document.getElementById('ke1').value);
+  var t1=document.getElementById('ke2').value;
+  var t2=document.getElementById('ke3').value;
+  var fr=parseFloat(document.getElementById('ke4').value)/100;
+  var adet=parseFloat(document.getElementById('ke6').value)||1;
+  var ana=a*adet;
+  var faiz=ana*fr*(ayFarki(t1,t2)/12);
+  var top=ana+faiz;
+  document.getElementById('ke_a').textContent=fmt(ana);
+  document.getElementById('ke_f').textContent=fmt(faiz);
+  document.getElementById('ke_t').textContent=fmt(top);
+  document.getElementById('res6212ke').style.display='block';
+}
+function fn6212mv(){
+  var P=parseFloat(document.getElementById('mv1').value);
+  var r=parseFloat(document.getElementById('mv2').value)/100;
+  var gun=parseFloat(document.getElementById('mv3').value);
+  var yon=document.getElementById('mv4').value;
+  var stopaj=parseFloat(document.getElementById('mv5').value)/100;
+  var enf=parseFloat(document.getElementById('mv6').value)/100;
+  var yil=gun/365;
+  var brutFaiz= yon==='basit'? P*r*yil : P*(Math.pow(1+r,yil)-1);
+  var stopajTutar=brutFaiz*stopaj;
+  var netFaiz=brutFaiz-stopajTutar;
+  var enfKayip=P*enf*yil;
+  var reelGetiri=netFaiz-enfKayip;
+  document.getElementById('mv_b').textContent=fmt(brutFaiz);
+  document.getElementById('mv_n').textContent=fmt(netFaiz);
+  document.getElementById('mv_r').textContent=fmt(reelGetiri);
+  document.getElementById('mv_r1').textContent=fmt(P);
+  document.getElementById('mv_r2').textContent=fmt(brutFaiz);
+  document.getElementById('mv_r3_oran').textContent=(stopaj*100).toFixed(0);
+  document.getElementById('mv_r3').textContent=fmt(stopajTutar);
+  document.getElementById('mv_r4').textContent=fmt(netFaiz);
+  document.getElementById('mv_r5').textContent=fmt(enfKayip);
+  document.getElementById('mv_r6').textContent=fmt(reelGetiri);
+  document.getElementById('res6212mv').style.display='block';
+}
+
+</script>
+</body>
+</html>
